@@ -1,10 +1,11 @@
 """Product, SKU, Category, Supplier and ProductImage models."""
 
 import uuid
+from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 
-from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -32,9 +33,8 @@ class Product(Base):
     supplier_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("suppliers.id"), nullable=True
     )
-    cost_price: Mapped[Decimal] = mapped_column(
-        Numeric(12, 2), nullable=False, default=Decimal("0.00")
-    )
+    # Unknown until linked to a sourcing candidate; never filled with a placeholder.
+    cost_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     sale_price: Mapped[Decimal | None] = mapped_column(
         Numeric(12, 2), nullable=True
     )
@@ -43,6 +43,27 @@ class Product(Base):
     tiktok_product_id: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
     source_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     source_product_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    # Synced from the Miaoshou TikTok collect box (see product_sync_service).
+    miaoshou_detail_id: Mapped[str | None] = mapped_column(String(32), unique=True, nullable=True)
+    common_detail_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    miaoshou_status: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
+    market: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    shop_ids: Mapped[list] = mapped_column(JSONB, default=list, server_default="[]")
+    thumbnail: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    item_num: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    stock: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # sale_price holds the lowest active SKU price, sale_price_max the highest (shop currency).
+    sale_price_max: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    sku_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # 'sourcing' = linked 1688 candidate purchase price, 'miaoshou' = SKU originPrice in the collect box.
+    cost_source: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    sale_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
+    cost_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
+    sourcing_candidate_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("sourcing_candidates.id", ondelete="SET NULL"), nullable=True
+    )
+    synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     skus: Mapped[list["ProductSKU"]] = relationship(

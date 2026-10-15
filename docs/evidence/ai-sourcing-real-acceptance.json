@@ -1,0 +1,235 @@
+{
+  "accepted_at": "2026-10-13T16:11:21.343515+08:00",
+  "counts": {
+    "users": 3,
+    "products": 29,
+    "orders": 50,
+    "sourcing_candidates": 2,
+    "sourcing_analysis_tasks": 3,
+    "sourcing_ai_evaluations": 2,
+    "sourcing_reviews": 3
+  },
+  "migration_version": "0b8f25ba38cb",
+  "evaluations": [
+    {
+      "evaluation_id": "5ea09e45-f29f-43d4-b68f-77cfb7d3c81e",
+      "task_id": "18c9735b-ef0b-4a4f-a805-d24151fb0cb7",
+      "candidate_id": "5b193717-b28a-4b7e-9b8f-75554ae27f0c",
+      "input_version": 1,
+      "market": "MY",
+      "miaoshou_detail_id": "4058549593",
+      "source_product_id": "900352236779",
+      "original_url": "http://detail.1688.com/offer/900352236779.html",
+      "visual_score": "82.00",
+      "text_status": "succeeded",
+      "vision": {
+        "model": "qwen3-vl-plus",
+        "usage": {
+          "total_tokens": 4004,
+          "prompt_tokens": 3264,
+          "completion_tokens": 740,
+          "prompt_tokens_details": {
+            "text_tokens": 1383,
+            "image_tokens": 1881,
+            "cached_tokens": 640
+          },
+          "completion_tokens_details": {
+            "text_tokens": 740
+          }
+        },
+        "images": [
+          {
+            "url": "https://cbu01.alicdn.com/img/ibank/O1CN01vfiUQf1rBeElZXjEo_!!2211282065593-0-cib.jpg",
+            "bytes": 196505,
+            "sha256": "faffaf089b70e78060f51f59975319878eab623703b6a8b595c7712b3305d4e5"
+          },
+          {
+            "url": "https://cbu01.alicdn.com/img/ibank/O1CN01YwqKIS1rBeEmbS9Yh_!!2211282065593-0-cib.jpg",
+            "bytes": 99730,
+            "sha256": "876343c86972d6ecd8dded286e0e75a6c49f0e7aeedc0ad3a08538e40213aa2c"
+          },
+          {
+            "url": "https://cbu01.alicdn.com/img/ibank/O1CN01v4j7PP1rBeEo8OuxY_!!2211282065593-0-cib.jpg",
+            "bytes": 182714,
+            "sha256": "d779e519b2a187412ee36b1ce2771697acf8155c43dab905ff91bd3406f20cf6"
+          }
+        ],
+        "provider": "bailian",
+        "called_at": "2026-10-13T07:56:44.872924+00:00",
+        "request_id": "chatcmpl-65bf2ffe-fea0-9506-9be2-cc38b14ad516"
+      },
+      "text": {
+        "model": "deepseek-flash",
+        "usage": {
+          "total_tokens": 5365,
+          "prompt_tokens": 2228,
+          "completion_tokens": 3137,
+          "prompt_tokens_details": {
+            "cached_tokens": 640
+          },
+          "prompt_cache_hit_tokens": 640,
+          "prompt_cache_miss_tokens": 1588,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1877
+          }
+        },
+        "provider": "deepseek",
+        "called_at": "2026-10-13T07:57:03.456551+00:00",
+        "request_id": "96965f16-06ed-4075-9c76-b9a06ee6c903"
+      },
+      "prompt_version": "sourcing-v1.1",
+      "schema_version": "1",
+      "review_status": "approved",
+      "favorite": true
+    },
+    {
+      "evaluation_id": "0f3879d9-c0da-40a6-83f5-9d0c5aa19cf9",
+      "task_id": "94fdb0e7-9e28-4ba2-bd8f-a585da206a96",
+      "candidate_id": "2aab25d0-8b96-4f91-ac7b-248ba4966535",
+      "input_version": 1,
+      "market": "TH",
+      "miaoshou_detail_id": "4058549593",
+      "source_product_id": "900352236779",
+      "original_url": "http://detail.1688.com/offer/900352236779.html",
+      "visual_score": "82.00",
+      "text_status": "succeeded",
+      "vision": {
+        "model": "qwen3-vl-plus",
+        "usage": {
+          "total_tokens": 3902,
+          "prompt_tokens": 3264,
+          "completion_tokens": 638,
+          "prompt_tokens_details": {
+            "text_tokens": 1383,
+            "image_tokens": 1881,
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "text_tokens": 638
+          }
+        },
+        "images": [
+          {
+            "url": "https://cbu01.alicdn.com/img/ibank/O1CN01vfiUQf1rBeElZXjEo_!!2211282065593-0-cib.jpg",
+            "bytes": 196505,
+            "sha256": "faffaf089b70e78060f51f59975319878eab623703b6a8b595c7712b3305d4e5"
+          },
+          {
+            "url": "https://cbu01.alicdn.com/img/ibank/O1CN01YwqKIS1rBeEmbS9Yh_!!2211282065593-0-cib.jpg",
+            "bytes": 99730,
+            "sha256": "876343c86972d6ecd8dded286e0e75a6c49f0e7aeedc0ad3a08538e40213aa2c"
+          },
+          {
+            "url": "https://cbu01.alicdn.com/img/ibank/O1CN01v4j7PP1rBeEo8OuxY_!!2211282065593-0-cib.jpg",
+            "bytes": 182714,
+            "sha256": "d779e519b2a187412ee36b1ce2771697acf8155c43dab905ff91bd3406f20cf6"
+          }
+        ],
+        "provider": "bailian",
+        "called_at": "2026-10-13T07:56:41.437941+00:00",
+        "request_id": "chatcmpl-46aedc96-f0de-9b43-bbcc-6911c37c70e8"
+      },
+      "text": {
+        "model": "deepseek-flash",
+        "usage": {
+          "total_tokens": 3212,
+          "prompt_tokens": 2113,
+          "completion_tokens": 1099,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2113
+        },
+        "provider": "deepseek",
+        "called_at": "2026-10-13T07:59:28.166709+00:00",
+        "request_id": "1f4b9cfd-ea24-4e81-bad8-8ba0770a040d",
+        "request_parameters": {
+          "thinking": {
+            "type": "disabled"
+          },
+          "max_tokens": 3500
+        }
+      },
+      "prompt_version": "sourcing-v1.1",
+      "schema_version": "1",
+      "review_status": "rejected",
+      "favorite": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "18c9735b-ef0b-4a4f-a805-d24151fb0cb7",
+      "candidate_id": "5b193717-b28a-4b7e-9b8f-75554ae27f0c",
+      "parent_task_id": null,
+      "batch_id": "71c3788e-bccb-44f0-815b-2b719054c77a",
+      "status": "succeeded",
+      "stage": "complete",
+      "error_code": null,
+      "error_message": null,
+      "vision_request_id": "chatcmpl-65bf2ffe-fea0-9506-9be2-cc38b14ad516"
+    },
+    {
+      "id": "58ed4f9f-79d4-41e1-a2f5-dc463ee2c2cd",
+      "candidate_id": "2aab25d0-8b96-4f91-ac7b-248ba4966535",
+      "parent_task_id": null,
+      "batch_id": "71c3788e-bccb-44f0-815b-2b719054c77a",
+      "status": "failed",
+      "stage": "text",
+      "error_code": "output_incomplete",
+      "error_message": "deepseek 返回内容被截断或未正常完成",
+      "vision_request_id": "chatcmpl-46aedc96-f0de-9b43-bbcc-6911c37c70e8"
+    },
+    {
+      "id": "94fdb0e7-9e28-4ba2-bd8f-a585da206a96",
+      "candidate_id": "2aab25d0-8b96-4f91-ac7b-248ba4966535",
+      "parent_task_id": "58ed4f9f-79d4-41e1-a2f5-dc463ee2c2cd",
+      "batch_id": "17177ca9-d89d-49a6-a92a-fd6dba041aa4",
+      "status": "succeeded",
+      "stage": "complete",
+      "error_code": null,
+      "error_message": null,
+      "vision_request_id": "chatcmpl-46aedc96-f0de-9b43-bbcc-6911c37c70e8"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "67a96156-f92d-47bf-86d2-65ab92a65897",
+      "candidate_id": "5b193717-b28a-4b7e-9b8f-75554ae27f0c",
+      "evaluation_id": "5ea09e45-f29f-43d4-b68f-77cfb7d3c81e",
+      "input_version": 1,
+      "reviewer_id": "a23a64d5-fdb2-40bf-859a-989702989fe2",
+      "action": "favorite",
+      "note": "第一阶段功能验收：保存审核决策，不代表运营上架批准；材质、供应商及当地需求仍需业务复核。",
+      "created_at": "2026-10-13 08:02:32.034064+00:00",
+      "nickname": "系统管理员"
+    },
+    {
+      "id": "a91a5f12-e0ac-4942-a6be-5075056feb35",
+      "candidate_id": "5b193717-b28a-4b7e-9b8f-75554ae27f0c",
+      "evaluation_id": "5ea09e45-f29f-43d4-b68f-77cfb7d3c81e",
+      "input_version": 1,
+      "reviewer_id": "a23a64d5-fdb2-40bf-859a-989702989fe2",
+      "action": "approve",
+      "note": "第一阶段功能验收：保存审核决策，不代表运营上架批准；材质、供应商及当地需求仍需业务复核。",
+      "created_at": "2026-10-13 08:02:46.027387+00:00",
+      "nickname": "系统管理员"
+    },
+    {
+      "id": "9bf78c50-0196-44e6-a314-aff90b1f61b8",
+      "candidate_id": "2aab25d0-8b96-4f91-ac7b-248ba4966535",
+      "evaluation_id": "0f3879d9-c0da-40a6-83f5-9d0c5aa19cf9",
+      "input_version": 1,
+      "reviewer_id": "a23a64d5-fdb2-40bf-859a-989702989fe2",
+      "action": "reject",
+      "note": "第一阶段功能验收：拒绝流程验证。缺少材质、供应商和当地需求证据，待补充后重新评估。",
+      "created_at": "2026-10-13 08:03:21.568337+00:00",
+      "nickname": "系统管理员"
+    }
+  ],
+  "notes": [
+    "真实模型请求，未用 fixture 代替验收",
+    "同一真实货源按 MY/TH 两个目标站点形成两个候选",
+    "审核记录为第一阶段功能验收决策，不代表运营上架批准"
+  ]
+}

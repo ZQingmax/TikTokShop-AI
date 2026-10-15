@@ -3,7 +3,7 @@
 import uuid
 from enum import StrEnum
 
-from sqlalchemy import Boolean, ForeignKey, String, Text
+from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -31,6 +31,8 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(50), nullable=False, default=UserRole.OPERATOR)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     last_login_at: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    # Embedded in every JWT; bumping it (password change) invalidates all earlier access and refresh tokens.
+    token_version: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default='0')
 
     # Note: role field is just a string, not a foreign key relationship
     # role_rel relationship removed to avoid FK issues

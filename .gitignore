@@ -12,6 +12,9 @@ build/
 # Virtual environments
 venv/
 .venv/
+.runtime/
+.npm-cache/
+frontend/.npm-cache/
 env/
 
 # IDE
@@ -71,3 +74,6 @@ scraper/httpcache/
 
 # Codebuddy
 .codebuddy/
+
+# Local launcher configuration (machine-specific temporary paths)
+.claude/

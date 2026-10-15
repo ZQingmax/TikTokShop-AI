@@ -1,6 +1,6 @@
 """Pricing, listing, fulfillment, customer service and finance API stubs."""
 
-import uuid
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends
@@ -13,6 +13,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.finance import FinanceRecord
 from app.models.fulfillment import PurchaseOrder, Shipment
+from app.models.order import Order
 from app.models.user import User
 from app.services.fulfillment_service import FulfillmentService
 from app.services.listing_service import ListingService
@@ -29,12 +30,6 @@ class PricingCalculateRequest(BaseModel):
 class MatchCategoryRequest(BaseModel):
     product_name: str
     description: str = ""
-
-
-class CreatePurchaseOrderRequest(BaseModel):
-    supplier_id: str
-    linked_order_ids: list[str] = []
-    remark: str = ""
 
 
 # --- Pricing ---
@@ -84,6 +79,51 @@ async def match_category(
 fulfillment_router = APIRouter(prefix="/v1/fulfillment", tags=["Fulfillment"])
 
 
+def _iso(value):
+    return value.isoformat() if value else None
+
+
+@fulfillment_router.get("/summary")
+async def fulfillment_summary(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Counts for the fulfillment page: packages to ship, overdue, shipped; purchase orders by status."""
+    now = datetime.now(timezone.utc)
+    to_ship = await db.scalar(select(func.count()).select_from(Order).where(Order.app_package_status == "wait_seller_send"))
+    overdue = await db.scalar(select(func.count()).select_from(Order).where(
+        Order.app_package_status == "wait_seller_send", Order.ship_by_at < now))
+    shipped = await db.scalar(select(func.count()).select_from(Order).where(Order.app_package_status == "wait_receiver_confirm"))
+    po_rows = (await db.execute(select(PurchaseOrder.status, func.count()).group_by(PurchaseOrder.status))).all()
+    return {"to_ship": to_ship or 0, "overdue": overdue or 0, "shipped": shipped or 0,
+            "purchase_orders": {str(k): v for k, v in po_rows}}
+
+
+@fulfillment_router.get("/outbound")
+async def list_outbound(
+    state: str = "to_ship",
+    page: int = 1,
+    page_size: int = 20,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Packages to ship (wait_seller_send, earliest deadline first) or in transit to buyers."""
+    status = {"to_ship": "wait_seller_send", "shipped": "wait_receiver_confirm"}.get(state, "wait_seller_send")
+    query = select(Order).options(selectinload(Order.items)).where(Order.app_package_status == status)
+    total = await db.scalar(select(func.count()).select_from(query.subquery())) or 0
+    order = Order.ship_by_at.asc().nulls_last() if state == "to_ship" else Order.shipped_at.desc().nulls_last()
+    rows = (await db.scalars(query.order_by(order).offset((page - 1) * page_size).limit(page_size))).all()
+    items = [{
+        "id": str(o.id), "tiktok_order_id": o.tiktok_order_id or "", "miaoshou_package_id": o.miaoshou_package_id,
+        "status_text": o.status_text, "shop_name": o.shop_name, "site": o.site,
+        "items": [{"name": i.product_name, "sku": i.sku_code, "quantity": i.quantity, "image_url": i.image_url} for i in o.items],
+        "ship_by_at": _iso(o.ship_by_at), "shipped_at": _iso(o.shipped_at), "tracking_number": o.tracking_number or "",
+        "carrier": (o.logistics or {}).get("logisticsCompany") or (o.logistics or {}).get("productName") or "",
+        "fulfillment_type": o.fulfillment_type,
+    } for o in rows]
+    return {"items": items, "total": total, "page": page, "page_size": page_size}
+
+
 @fulfillment_router.get("/purchase-orders")
 async def list_purchase_orders(
     status: str = None,
@@ -92,59 +132,32 @@ async def list_purchase_orders(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List purchase orders."""
-    query = select(PurchaseOrder).order_by(PurchaseOrder.created_at.desc())
-    count_query = select(func.count()).select_from(PurchaseOrder)
-
+    """List purchase orders synced from Miaoshou."""
+    query = select(PurchaseOrder)
     if status:
         query = query.where(PurchaseOrder.status == status)
-        count_query = count_query.where(PurchaseOrder.status == status)
-
-    total_result = await db.execute(count_query)
-    total = total_result.scalar() or 0
-
-    offset = (page - 1) * page_size
-    query = query.offset(offset).limit(page_size)
-    result = await db.execute(query)
-    orders = result.scalars().all()
-
+    total = await db.scalar(select(func.count()).select_from(query.subquery())) or 0
+    query = query.order_by(func.coalesce(PurchaseOrder.ordered_at, PurchaseOrder.created_at).desc())
+    orders = (await db.scalars(query.offset((page - 1) * page_size).limit(page_size))).all()
     items = [
         {
             "id": str(po.id),
+            "po_sn": po.po_sn or "",
             "alibaba_order_id": po.alibaba_order_id or "",
+            "supplier_name": po.supplier_name or "",
             "status": po.status,
             "total_amount": str(po.total_amount),
             "currency": po.currency,
+            "items": po.items or [],
             "tracking_number": po.tracking_number or "",
-            "created_at": po.created_at.isoformat() if po.created_at else "",
+            "remark": po.remark or "",
+            "ordered_at": _iso(po.ordered_at),
+            "synced_at": _iso(po.synced_at),
+            "created_at": _iso(po.created_at) or "",
         }
         for po in orders
     ]
     return {"items": items, "total": total, "page": page, "page_size": page_size}
-
-
-@fulfillment_router.post("/purchase-orders")
-async def create_purchase_order(
-    request: CreatePurchaseOrderRequest,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Create a 1688 purchase order."""
-    po = PurchaseOrder(
-        supplier_id=uuid.UUID(request.supplier_id) if request.supplier_id else None,
-        linked_order_ids=request.linked_order_ids,
-        remark=request.remark,
-        status="pending",
-        total_amount=Decimal("0.00"),
-    )
-    db.add(po)
-    await db.flush()
-
-    return {
-        "id": str(po.id),
-        "alibaba_order_id": po.alibaba_order_id or "",
-        "status": po.status,
-    }
 
 
 @fulfillment_router.get("/shipments")
@@ -154,22 +167,14 @@ async def list_shipments(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List shipments."""
+    """Inbound parcels of purchase orders (supplier to warehouse)."""
     query = (
         select(Shipment)
         .options(selectinload(Shipment.purchase_order))
         .order_by(Shipment.created_at.desc())
     )
-    count_query = select(func.count()).select_from(Shipment)
-
-    total_result = await db.execute(count_query)
-    total = total_result.scalar() or 0
-
-    offset = (page - 1) * page_size
-    query = query.offset(offset).limit(page_size)
-    result = await db.execute(query)
-    shipments = result.scalars().all()
-
+    total = await db.scalar(select(func.count()).select_from(Shipment)) or 0
+    shipments = (await db.scalars(query.offset((page - 1) * page_size).limit(page_size))).all()
     items = [
         {
             "id": str(s.id),
@@ -178,9 +183,9 @@ async def list_shipments(
             "carrier": s.carrier or "",
             "origin": s.origin or "",
             "destination": s.destination or "",
-            "estimated_delivery": s.estimated_delivery or "",
+            "po_sn": s.purchase_order.po_sn or "" if s.purchase_order else "",
             "alibaba_order_id": s.purchase_order.alibaba_order_id or "" if s.purchase_order else "",
-            "created_at": s.created_at.isoformat() if s.created_at else "",
+            "created_at": _iso(s.created_at) or "",
         }
         for s in shipments
     ]
@@ -212,58 +217,40 @@ async def get_finance_summary(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get financial summary."""
-    # Income sum
-    income_result = await db.execute(
-        select(func.sum(FinanceRecord.amount)).where(FinanceRecord.type == "income")
-    )
-    total_income = income_result.scalar() or Decimal("0")
+    """Financial summary from records derived from synced orders.
 
-    # Cost sum
-    cost_result = await db.execute(
-        select(func.sum(FinanceRecord.amount)).where(FinanceRecord.type == "cost")
-    )
-    total_cost = cost_result.scalar() or Decimal("0")
-
-    # Refund sum
-    refund_result = await db.execute(
-        select(func.sum(FinanceRecord.amount)).where(FinanceRecord.type == "refund")
-    )
-    total_refund = refund_result.scalar() or Decimal("0")
-
-    # Fee sum
-    fee_result = await db.execute(
-        select(func.sum(FinanceRecord.amount)).where(FinanceRecord.type == "fee")
-    )
-    total_fee = fee_result.scalar() or Decimal("0")
-
-    # Withdrawal sum
-    withdrawal_result = await db.execute(
-        select(func.sum(FinanceRecord.amount)).where(FinanceRecord.type == "withdrawal")
-    )
-    total_withdrawal = withdrawal_result.scalar() or Decimal("0")
-
-    # Order count
-    order_count_result = await db.execute(
-        select(func.count(func.distinct(FinanceRecord.order_id))).where(
-            FinanceRecord.order_id.isnot(None)
-        )
-    )
-    order_count = order_count_result.scalar() or 0
-
-    total_revenue = total_income
-    net_profit = total_revenue - total_cost
-    profit_rate = float(net_profit / total_revenue) if total_revenue > 0 else 0.0
-
+    Totals are in CNY and only include records with a known CNY rate; `unconverted` lists the rest per
+    currency so nothing is silently dropped or mixed across currencies."""
+    rows = (await db.execute(
+        select(FinanceRecord.type, FinanceRecord.currency, func.sum(FinanceRecord.amount),
+               func.sum(FinanceRecord.cny_amount), func.count(), func.count(FinanceRecord.cny_amount))
+        .group_by(FinanceRecord.type, FinanceRecord.currency)
+    )).all()
+    cny = {kind: Decimal("0") for kind in ("income", "cost", "refund", "fee", "withdrawal")}
+    by_currency, unconverted = {}, {}
+    for kind, currency, amount, cny_amount, count, converted in rows:
+        cny[kind] = cny.get(kind, Decimal("0")) + (cny_amount or Decimal("0"))
+        by_currency.setdefault(currency, {})[kind] = str(amount or 0)
+        if converted < count:
+            unconverted.setdefault(currency, 0)
+            unconverted[currency] += count - converted
+    order_count = await db.scalar(
+        select(func.count(func.distinct(FinanceRecord.order_id))).where(FinanceRecord.order_id.isnot(None))
+    ) or 0
+    revenue = cny["income"]
+    net_profit = revenue - cny["cost"] - cny["fee"] - cny["refund"]
     return {
-        "total_revenue": str(total_revenue),
-        "total_cost": str(total_cost),
-        "total_refund": str(total_refund),
-        "total_fee": str(total_fee),
-        "total_withdrawal": str(total_withdrawal),
+        "total_revenue": str(revenue),
+        "total_cost": str(cny["cost"]),
+        "total_refund": str(cny["refund"]),
+        "total_fee": str(cny["fee"]),
+        "total_withdrawal": str(cny["withdrawal"]),
         "net_profit": str(net_profit),
-        "profit_rate": profit_rate,
+        "profit_rate": float(net_profit / revenue) if revenue > 0 else 0.0,
         "order_count": order_count,
+        "currency": "CNY",
+        "by_currency": by_currency,
+        "unconverted": unconverted,
     }
 
 
@@ -298,8 +285,8 @@ async def list_transactions(
             "type": r.type,
             "amount": str(r.amount),
             "currency": r.currency,
-            "exchange_rate": str(r.exchange_rate),
-            "cny_amount": str(r.cny_amount),
+            "exchange_rate": str(r.exchange_rate) if r.exchange_rate is not None else None,
+            "cny_amount": str(r.cny_amount) if r.cny_amount is not None else None,
             "description": r.description or "",
             "site": r.site or "",
             "created_at": r.created_at.isoformat() if r.created_at else "",

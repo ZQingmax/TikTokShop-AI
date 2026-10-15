@@ -1,116 +1,112 @@
 <template>
   <div class="products-container">
-    <!-- 页面标题栏 -->
     <div class="page-header">
-      <h2>商品管理</h2>
-      <el-button type="primary" @click="handleCreate">
-        <el-icon><Plus /></el-icon>新建商品
-      </el-button>
+      <div>
+        <h2>商品管理</h2>
+        <p class="muted">
+          商品来自妙手 TikTok 采集箱，成本价来自关联的 1688 货源。{{ syncedAt ? `上次同步 ${formatTime(syncedAt)}` : '尚未同步' }}
+        </p>
+      </div>
+      <el-button type="primary" :loading="syncing" @click="sync()">从妙手同步</el-button>
     </div>
 
-    <!-- 搜索筛选栏 -->
-    <el-card shadow="hover" class="filter-card">
-      <el-row :gutter="16" align="middle">
-        <el-col :xs="24" :sm="8" :md="6">
-          <el-input
-            v-model="filters.keyword"
-            placeholder="搜索商品名称..."
-            clearable
-            @keyup.enter="handleSearch"
-          />
-        </el-col>
-        <el-col :xs="24" :sm="6" :md="4">
-          <el-select v-model="filters.status" placeholder="全部状态" clearable style="width: 100%">
-            <el-option v-for="(label, key) in statusMap" :key="key" :label="label" :value="key" />
-          </el-select>
-        </el-col>
-        <el-col :xs="24" :sm="10" :md="6">
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-col>
-      </el-row>
+    <el-card shadow="never" class="filter-card">
+      <el-tabs v-model="filters.status" @tab-change="search">
+        <el-tab-pane :label="`全部（${total}）`" name="" />
+        <el-tab-pane v-for="(s, key) in productStatus" :key="key" :label="`${s.label}（${counts[key] || 0}）`" :name="key" />
+      </el-tabs>
+      <div class="toolbar">
+        <el-input
+          v-model="filters.keyword"
+          placeholder="名称 / TK 采集箱 ID / 货源 ID / 货号"
+          clearable
+          style="width: 280px"
+          @keyup.enter="search"
+          @clear="search"
+        />
+        <el-select v-model="filters.market" placeholder="全部站点" clearable style="width: 160px" @change="search"
+          ><el-option v-for="m in markets" :key="m" :value="m" :label="m"
+        /></el-select>
+        <el-button @click="search">搜索</el-button>
+      </div>
     </el-card>
 
-    <!-- 商品列表 -->
-    <el-card shadow="hover" class="table-card">
-      <el-table
-        v-loading="loading"
-        :data="tableData"
-        stripe
-        style="width: 100%"
-        row-key="id"
-      >
-        <el-table-column prop="name" label="商品名称" min-width="160" show-overflow-tooltip />
-        <el-table-column prop="cost_price" label="成本价" width="120" align="right">
-          <template #default="{ row }">
-            ¥{{ formatMoney(row.cost_price) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="sale_price" label="售价" width="120" align="right">
-          <template #default="{ row }">
-            ¥{{ formatMoney(row.sale_price) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="140">
-          <template #default="{ row }">
-            <el-tag :type="statusTagMap[row.status] || 'info'" size="small">
-              {{ statusMap[row.status] || row.status }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="score" label="评分" width="80" align="center">
-          <template #default="{ row }">
-            {{ row.score ?? '-' }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="created_at" label="创建时间" width="170">
-          <template #default="{ row }">
-            {{ formatTime(row.created_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-popconfirm
-              title="确定删除该商品吗？"
-              confirm-button-text="确定"
-              cancel-button-text="取消"
-              @confirm="handleDelete(row)"
-            >
-              <template #reference>
-                <el-button type="danger" link size="small">删除</el-button>
-              </template>
-            </el-popconfirm>
-            <el-button
-              v-if="row.status === 'listed'"
-              type="warning"
+    <el-card shadow="never" class="table-card">
+      <el-alert v-if="error" :title="error" type="error" :closable="false" class="alert" />
+      <el-table v-loading="loading" :data="rows" row-key="id">
+        <template #empty>
+          <el-empty :description="syncedAt ? '没有符合条件的商品' : '还没有商品，点击「从妙手同步」导入妙手 TikTok 采集箱商品'" :image-size="80" />
+        </template>
+        <el-table-column label="商品" min-width="340"
+          ><template #default="{ row }"
+            ><div class="product">
+              <el-image v-if="row.thumbnail" :src="row.thumbnail" class="thumb" fit="contain" referrerpolicy="no-referrer" />
+              <div>
+                <strong>{{ row.name }}</strong>
+                <p class="muted">TK 采集箱 ID {{ row.miaoshou_detail_id || '—' }}{{ row.item_num ? ` · 货号 ${row.item_num}` : '' }}</p>
+              </div>
+            </div></template
+          ></el-table-column
+        >
+        <el-table-column label="站点 / 店铺" width="170"
+          ><template #default="{ row }"
+            >{{ row.market || '未知站点' }}
+            <p class="muted">{{ row.shop_ids.length ? `店铺 ${row.shop_ids.join('、')}` : '未认领店铺' }}</p></template
+          ></el-table-column
+        >
+        <el-table-column label="TikTok 售价" width="170" align="right"
+          ><template #default="{ row }"
+            ><template v-if="row.sale_price !== null"
+              >{{ priceRange(row) }}<p class="muted">{{ row.sku_count }} 个 SKU</p></template
+            ><span v-else class="muted">{{ row.shop_ids.length ? '未设置' : '认领店铺后设置' }}</span></template
+          ></el-table-column
+        >
+        <el-table-column label="成本价（货源）" width="170" align="right"
+          ><template #default="{ row }"
+            ><template v-if="row.cost_price !== null"
+              >{{ money(row.cost_price, row.cost_currency) }}
+              <p class="muted">{{ row.cost_source === 'sourcing' ? '货源采购价' : '妙手货源价' }}</p></template
+            ><span v-else class="muted">未关联货源</span>
+            <p v-if="row.source_product_id" class="muted">
+              <el-link v-if="row.source_url" :href="row.source_url" target="_blank" type="primary">1688 {{ row.source_product_id }}</el-link
+              ><template v-else>1688 {{ row.source_product_id }}</template>
+            </p></template
+          ></el-table-column
+        >
+        <el-table-column label="库存" width="110" align="right"
+          ><template #default="{ row }">{{ row.stock ?? '—' }}</template></el-table-column
+        >
+        <el-table-column label="妙手状态" width="120"
+          ><template #default="{ row }"
+            ><el-tag :type="productStatus[row.miaoshou_status]?.type || 'info'" size="small">{{
+              productStatus[row.miaoshou_status]?.label || '本地商品'
+            }}</el-tag></template
+          ></el-table-column
+        >
+        <el-table-column label="同步时间" width="160"
+          ><template #default="{ row }">{{ formatTime(row.synced_at) }}</template></el-table-column
+        >
+        <el-table-column label="操作" width="140" fixed="right"
+          ><template #default="{ row }"
+            ><el-button link type="primary" :disabled="!row.miaoshou_detail_id || row.miaoshou_status === 'removed'" @click="showDetail(row)"
+              >详情</el-button
+            ><el-button
+              v-if="row.miaoshou_status === 'notPublished' && row.shop_ids.length"
               link
-              size="small"
-              @click="handleToggleListing(row, 'delisted')"
-            >
-              下架
-            </el-button>
-            <el-button
-              v-else-if="row.status === 'active' || row.status === 'delisted'"
               type="success"
-              link
-              size="small"
-              @click="handleToggleListing(row, 'listed')"
-            >
-              上架
-            </el-button>
-          </template>
-        </el-table-column>
+              @click="router.push({ path: '/collect', query: { tab: 'listing' } })"
+              >去上架</el-button
+            ></template
+          ></el-table-column
+        >
       </el-table>
-
-      <!-- 分页器 -->
       <div class="pagination-wrapper">
         <el-pagination
           v-model:current-page="pagination.page"
           v-model:page-size="pagination.pageSize"
           :page-sizes="[10, 20, 50]"
           :total="pagination.total"
-          layout="total, sizes, prev, pager, next, jumper"
+          layout="total, sizes, prev, pager, next"
           background
           @size-change="fetchProducts"
           @current-change="fetchProducts"
@@ -118,307 +114,139 @@
       </div>
     </el-card>
 
-    <!-- 新建/编辑弹窗 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="isEditing ? '编辑商品' : '新建商品'"
-      width="560px"
-      destroy-on-close
-      @closed="resetForm"
-    >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        label-width="80px"
-        label-position="right"
-      >
-        <el-form-item label="商品名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入商品名称" maxlength="100" show-word-limit />
-        </el-form-item>
-        <el-form-item label="描述" prop="description">
-          <el-input
-            v-model="formData.description"
-            type="textarea"
-            placeholder="请输入商品描述"
-            :rows="3"
-            maxlength="500"
-            show-word-limit
-          />
-        </el-form-item>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="成本价" prop="cost_price">
-              <el-input-number v-model="formData.cost_price" :min="0" :precision="2" :controls="false" style="width: 100%" placeholder="0.00" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="售价" prop="sale_price">
-              <el-input-number v-model="formData.sale_price" :min="0" :precision="2" :controls="false" style="width: 100%" placeholder="0.00" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="formData.status" placeholder="请选择状态" style="width: 100%">
-            <el-option v-for="(label, key) in statusMap" :key="key" :label="label" :value="key" />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
-      </template>
-    </el-dialog>
+    <el-dialog v-model="detail.visible" title="TikTok 采集箱详情" width="1080px" top="5vh"
+      ><div v-if="detail.row && detail.row.shop_ids.length > 1" class="toolbar"
+        ><span class="muted">店铺</span
+        ><el-select v-model="detail.shopId" style="width: 200px" @change="loadDetail"
+          ><el-option v-for="s in detail.row.shop_ids" :key="s" :label="`店铺 ${s}`" :value="s" /></el-select
+      ></div>
+      <div v-loading="detail.loading" class="section">
+        <TiktokBoxDetails :data="detail.data" :detail-id="detail.row?.miaoshou_detail_id || ''" :shop-id="detail.shopId" /></div
+    ></el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
-import { getProducts, createProduct, updateProduct } from '@/api'
+import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { markets } from '@/api/sourcing'
+import { products, productStatus, type SyncedProduct } from '@/api/products'
+import { miaoshouBoxes, type TiktokBoxDetail } from '@/api/miaoshou'
+import TiktokBoxDetails from '@/components/TiktokBoxDetails.vue'
 
-// ========== 状态映射 ==========
-const statusMap: Record<string, string> = {
-  draft: '草稿',
-  active: '在售',
-  inactive: '已下架',
-  listed: '已上架(TikTok)',
-  delisted: '已下架(TikTok)',
+const router = useRouter()
+const STALE_MS = 30 * 60 * 1000
+const filters = reactive({ keyword: '', status: '', market: '' })
+const pagination = reactive({ page: 1, pageSize: 20, total: 0 })
+const rows = ref<SyncedProduct[]>([]), loading = ref(false), syncing = ref(false), error = ref('')
+const counts = ref<Record<string, number>>({}), total = ref(0), syncedAt = ref<string | null>(null)
+const detail = reactive({ visible: false, loading: false, row: null as SyncedProduct | null, shopId: '', data: null as TiktokBoxDetail | null })
+
+function errorText(e: unknown, fallback: string) {
+  const value = (e as { response?: { data?: { detail?: unknown } } }).response?.data?.detail
+  return typeof value === 'string' ? value : fallback
 }
-
-const statusTagMap: Record<string, string> = {
-  draft: 'info',
-  active: 'success',
-  inactive: 'danger',
-  listed: 'primary',
-  delisted: 'warning',
+function money(value: string | null, currency: string | null) {
+  return value === null ? '—' : `${Number(value).toFixed(2)} ${currency || ''}`.trim()
 }
-
-// ========== 筛选条件 ==========
-const filters = reactive({
-  keyword: '',
-  status: '',
-})
-
-// ========== 分页 ==========
-const pagination = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-})
-
-// ========== 表格数据 ==========
-const loading = ref(false)
-const tableData = ref<any[]>([])
-
-// ========== 弹窗相关 ==========
-const dialogVisible = ref(false)
-const isEditing = ref(false)
-const editingId = ref('')
-const submitting = ref(false)
-const formRef = ref<FormInstance>()
-
-interface ProductForm {
-  name: string
-  description: string
-  cost_price: number | undefined
-  sale_price: number | undefined
-  status: string
+function priceRange(row: SyncedProduct) {
+  if (row.sale_price_max === null || row.sale_price_max === row.sale_price) return money(row.sale_price, row.sale_currency)
+  return `${Number(row.sale_price).toFixed(2)}–${money(row.sale_price_max, row.sale_currency)}`
 }
-
-const formData = reactive<ProductForm>({
-  name: '',
-  description: '',
-  cost_price: undefined,
-  sale_price: undefined,
-  status: 'draft',
-})
-
-const formRules: FormRules = {
-  name: [{ required: true, message: '请输入商品名称', trigger: 'blur' }],
-  sale_price: [{ required: true, message: '请输入售价', trigger: 'blur' }],
-}
-
-// ========== 方法 ==========
-
-/** 金额格式化：保留2位小数 */
-function formatMoney(value: number | undefined): string {
-  if (value === undefined || value === null) return '0.00'
-  return Number(value).toFixed(2)
-}
-
-/** 时间格式化：YYYY-MM-DD HH:mm */
-function formatTime(value: string | undefined): string {
-  if (!value) return '-'
+function formatTime(value: string | null | undefined) {
+  if (!value) return '—'
   const d = new Date(value)
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-/** 加载商品列表 */
+async function fetchSummary() {
+  const r = await products.summary()
+  counts.value = r.counts
+  total.value = Object.values(r.counts).reduce((a, b) => a + b, 0)
+  syncedAt.value = r.synced_at
+}
 async function fetchProducts() {
   loading.value = true
   try {
-    const params: Record<string, unknown> = {
+    const r = await products.list({
       page: pagination.page,
       page_size: pagination.pageSize,
-    }
-    if (filters.keyword) params.keyword = filters.keyword
-    if (filters.status) params.status = filters.status
-
-    const res: any = await getProducts(params)
-    tableData.value = res.items || res.data || []
-    pagination.total = res.total || 0
-  } catch (err: any) {
-    ElMessage.error('加载商品列表失败')
+      keyword: filters.keyword || undefined,
+      miaoshou_status: filters.status || undefined,
+      market: filters.market || undefined,
+    })
+    rows.value = r.items
+    pagination.total = r.total
+  } catch (e) {
+    error.value = errorText(e, '商品列表加载失败')
   } finally {
     loading.value = false
   }
 }
-
-/** 搜索 */
-function handleSearch() {
+async function search() {
   pagination.page = 1
-  fetchProducts()
+  await fetchProducts()
 }
-
-/** 重置筛选 */
-function handleReset() {
-  filters.keyword = ''
-  filters.status = ''
-  pagination.page = 1
-  fetchProducts()
-}
-
-/** 新建商品 */
-function handleCreate() {
-  isEditing.value = false
-  editingId.value = ''
-  dialogVisible.value = true
-}
-
-/** 编辑商品 */
-function handleEdit(row: any) {
-  isEditing.value = true
-  editingId.value = row.id
-  Object.assign(formData, {
-    name: row.name || '',
-    description: row.description || '',
-    cost_price: row.cost_price ?? undefined,
-    sale_price: row.sale_price ?? undefined,
-    status: row.status || 'draft',
-  })
-  dialogVisible.value = true
-}
-
-/** 删除商品 */
-async function handleDelete(row: any) {
+async function sync(quiet = false) {
+  syncing.value = true
+  error.value = ''
   try {
-    await updateProduct(row.id, { status: 'inactive' } as any)
-    ElMessage.success('商品已删除')
-    fetchProducts()
-  } catch (err: any) {
-    ElMessage.error('删除失败')
-  }
-}
-
-/** 上架/下架切换 */
-async function handleToggleListing(row: any, newStatus: string) {
-  try {
-    await updateProduct(row.id, { status: newStatus } as any)
-    ElMessage.success(newStatus === 'listed' ? '已上架' : '已下架')
-    fetchProducts()
-  } catch (err: any) {
-    ElMessage.error('操作失败')
-  }
-}
-
-/** 重置表单 */
-function resetForm() {
-  formRef.value?.resetFields()
-  Object.assign(formData, {
-    name: '',
-    description: '',
-    cost_price: undefined,
-    sale_price: undefined,
-    status: 'draft',
-  })
-}
-
-/** 提交表单 */
-async function handleSubmit() {
-  const valid = await formRef.value?.validate().catch(() => false)
-  if (!valid) return
-
-  submitting.value = true
-  try {
-    const payload: Record<string, unknown> = {
-      name: formData.name,
-      description: formData.description,
-      cost_price: formData.cost_price,
-      sale_price: formData.sale_price,
-      status: formData.status,
-    }
-    if (isEditing.value) {
-      await updateProduct(editingId.value, payload)
-      ElMessage.success('编辑成功')
-    } else {
-      await createProduct(payload)
-      ElMessage.success('创建成功')
-    }
-    dialogVisible.value = false
-    fetchProducts()
-  } catch (err: any) {
-    ElMessage.error(isEditing.value ? '编辑失败' : '创建失败')
+    const r = await products.sync()
+    if (!quiet) ElMessage.success(`已同步 ${r.total} 个商品（新增 ${r.created}，更新 ${r.updated}，移出妙手 ${r.removed}）`)
+    if (r.detail_failed) ElMessage.warning(`${r.detail_failed} 个商品的店铺详情读取失败，售价与库存保留上次同步的值`)
+    await Promise.all([fetchSummary(), fetchProducts()])
+  } catch (e) {
+    error.value = errorText(e, '从妙手同步失败')
   } finally {
-    submitting.value = false
+    syncing.value = false
+  }
+}
+async function showDetail(row: SyncedProduct) {
+  if (!row.miaoshou_detail_id) return
+  if (!row.shop_ids.length) {
+    // Shop-mode detail needs a shop; unclaimed products only have the public collect-box record.
+    return ElMessage.warning('该商品未认领店铺，暂无店铺模式详情；可在「采集上架 → 商品编辑工作台」认领到店铺')
+  }
+  Object.assign(detail, { visible: true, row, shopId: row.shop_ids[0], data: null })
+  await loadDetail()
+}
+async function loadDetail() {
+  if (!detail.row?.miaoshou_detail_id) return
+  detail.loading = true
+  try {
+    detail.data = (await miaoshouBoxes.detail(detail.row.miaoshou_detail_id, detail.shopId)).data
+  } catch (e) {
+    ElMessage.error(errorText(e, 'TikTok 采集箱详情读取失败'))
+  } finally {
+    detail.loading = false
   }
 }
 
-// ========== 生命周期 ==========
-onMounted(() => {
-  fetchProducts()
+onMounted(async () => {
+  try {
+    await fetchSummary()
+  } catch (e) {
+    error.value = errorText(e, '商品统计加载失败')
+  }
+  await fetchProducts()
+  // Keep the list close to 妙手 without a manual click: re-sync when it was never synced or is stale.
+  if (!syncedAt.value || Date.now() - new Date(syncedAt.value).getTime() > STALE_MS) await sync(true)
 })
 </script>
 
 <style scoped>
-.products-container {
-  padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.page-header h2 {
-  margin: 0;
-  font-size: 22px;
-  color: #303133;
-}
-
-.filter-card {
-  margin-bottom: 16px;
-}
-
-.filter-card .el-row .el-col {
-  margin-bottom: 8px;
-}
-
-.filter-card .el-col:last-child {
-  margin-bottom: 0;
-}
-
-.table-card {
-  margin-bottom: 16px;
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  padding: 16px 0 4px;
-}
+.products-container { padding: 0; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.page-header h2 { margin: 0 0 4px; font-size: 20px; color: var(--el-text-color-primary); }
+.filter-card { margin-bottom: 16px; }
+.toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.section { margin-top: 16px; }
+.alert { margin-bottom: 12px; }
+.muted { color: #73767a; font-size: 13px; margin: 0; }
+.product { display: flex; gap: 12px; align-items: center; }
+.thumb { width: 56px; height: 56px; flex-shrink: 0; }
+p { margin: 4px 0 0; line-height: 1.5; overflow-wrap: anywhere; }
+.pagination-wrapper { display: flex; justify-content: flex-end; margin-top: 16px; }
 </style>

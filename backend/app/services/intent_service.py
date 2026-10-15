@@ -43,10 +43,10 @@ class IntentClassifier:
     """Intent classification service using GPT-4o."""
 
     def __init__(self):
-        self.openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
         self.model = getattr(settings, 'llm_model', 'gpt-4o-mini')
         # 默认使用mock模式，避免在没有API密钥时报错
         self.mock_mode = not settings.openai_api_key or getattr(settings, 'llm_mock_mode', True)
+        self.openai_client = None if self.mock_mode else AsyncOpenAI(api_key=settings.openai_api_key)
 
     async def classify_intent(
         self,

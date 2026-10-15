@@ -10,10 +10,14 @@ from app.core.security import (
     create_refresh_token,
     get_current_user,
     hash_password,
+    token_claims,
+    token_current,
     verify_password,
 )
 from app.models.user import User
-from app.schemas.auth import LoginRequest, LoginResponse, RegisterRequest, UserResponse
+from app.schemas.auth import (
+    ChangePasswordRequest, LoginRequest, LoginResponse, RefreshRequest, RegisterRequest, UserResponse,
+)
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
@@ -35,8 +39,8 @@ async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
             detail="Account is disabled",
         )
 
-    access_token = create_access_token(data={"sub": str(user.id)})
-    refresh_token = create_refresh_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data=token_claims(user))
+    refresh_token = create_refresh_token(data=token_claims(user))
 
     return LoginResponse(
         access_token=access_token,
@@ -66,8 +70,8 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
     await db.commit()
     await db.refresh(user)
 
-    access_token = create_access_token(data={"sub": str(user.id)})
-    refresh_token = create_refresh_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data=token_claims(user))
+    refresh_token = create_refresh_token(data=token_claims(user))
 
     return LoginResponse(
         access_token=access_token,
@@ -77,26 +81,37 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
     )
 
 
-@router.post("/refresh")
-async def refresh_token(request: dict):
-    """Refresh access token using refresh token."""
+@router.post("/refresh", response_model=LoginResponse)
+async def refresh_token(request: RefreshRequest, db: AsyncSession = Depends(get_db)):
+    """Exchange a refresh token for a new access token (used by "remember me").
+
+    The user must still exist and be active. A new refresh token is issued each time,
+    so an actively used session stays signed in for the configured number of days.
+    """
     from jose import JWTError, jwt
     from app.config import get_settings
 
     settings = get_settings()
-    refresh_token_str = request.get("refresh_token", "")
+    invalid = HTTPException(status_code=401, detail="Invalid refresh token")
     try:
         payload = jwt.decode(
-            refresh_token_str, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
+            request.refresh_token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
         )
-        if payload.get("type") != "refresh":
-            raise HTTPException(status_code=401, detail="Invalid refresh token")
-        user_id = payload.get("sub")
     except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
+        raise invalid
+    user_id = payload.get("sub")
+    if payload.get("type") != "refresh" or not user_id:
+        raise invalid
+    user = await db.scalar(select(User).where(User.id == user_id))
+    if user is None or not user.is_active or not token_current(payload, user):
+        raise invalid
 
-    access_token = create_access_token(data={"sub": user_id})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return LoginResponse(
+        access_token=create_access_token(data=token_claims(user)),
+        refresh_token=create_refresh_token(data=token_claims(user)),
+        token_type="bearer",
+        expires_in=settings.jwt_access_token_expire_minutes * 60,
+    )
 
 
 @router.get("/me", response_model=UserResponse)
@@ -110,3 +125,24 @@ async def get_me(current_user: User = Depends(get_current_user)):
         is_active=current_user.is_active,
         created_at=current_user.created_at.isoformat(),
     )
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+async def change_password(
+    request: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Change the signed-in user's password.
+
+    Bumping token_version invalidates every access and refresh token issued so far, on all devices,
+    so the client must sign in again with the new password.
+    """
+    if not verify_password(request.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="当前密码不正确")
+    if request.new_password == request.current_password:
+        raise HTTPException(status_code=400, detail="新密码不能与当前密码相同")
+    user = await db.scalar(select(User).where(User.id == current_user.id).with_for_update())
+    user.hashed_password = hash_password(request.new_password)
+    user.token_version = (user.token_version or 0) + 1
+    await db.commit()

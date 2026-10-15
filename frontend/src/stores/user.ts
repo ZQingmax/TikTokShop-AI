@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import request from '@/api/request'
+import { session } from '@/api/session'
 import router from '@/router'
 
 interface UserInfo {
@@ -19,16 +20,17 @@ interface LoginParams {
 }
 
 export const useUserStore = defineStore('user', () => {
-  const token = ref<string>(localStorage.getItem('token') || '')
+  const token = ref<string>(session.token())
   const userInfo = ref<UserInfo | null>(null)
 
   const isLoggedIn = computed(() => !!token.value)
 
-  async function login(username: string, password: string) {
+  /** remember=true：保存 7 天 refresh_token 实现免登录，并记住用户名；从不保存密码 */
+  async function login(username: string, password: string, remember = false) {
     const res = await request.post('/v1/auth/login', { username, password })
     const data = res.data || res
     token.value = data.access_token || data.token
-    localStorage.setItem('token', token.value)
+    session.save(token.value, remember ? data.refresh_token || null : null, username)
     await fetchUserInfo()
   }
 
@@ -46,9 +48,10 @@ export const useUserStore = defineStore('user', () => {
   async function logout() {
     token.value = ''
     userInfo.value = null
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    router.push({ name: 'Login' })
+    // 主动退出同时作废本机的“记住我”，下次需重新输入密码
+    session.clear()
+    // 完整跳转可卸载旧页面和未保存编辑的路由守卫，退出后不再停留在后台。
+    window.location.replace(router.resolve({ name: 'Login' }).href)
   }
 
   function initUserInfo() {

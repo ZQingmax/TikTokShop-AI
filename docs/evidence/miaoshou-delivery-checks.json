@@ -1,0 +1,37 @@
+{
+  "credentials_configured": true,
+  "credential_scan_files": 251,
+  "credential_matches": 0,
+  "env_ignored": true,
+  "api_checks": {
+    "health": {
+      "http_status": 200,
+      "total": null
+    },
+    "login_user": {
+      "http_status": 200,
+      "total": null
+    },
+    "products": {
+      "http_status": 200,
+      "total": 29
+    },
+    "orders": {
+      "http_status": 200,
+      "total": 50
+    },
+    "sourcing": {
+      "http_status": 200,
+      "total": 3
+    },
+    "source_tasks": {
+      "http_status": 200,
+      "total": 2
+    },
+    "reviews": {
+      "http_status": 200,
+      "total": 4
+    }
+  },
+  "review_persisted": true
+}

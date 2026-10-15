@@ -1,10 +1,11 @@
 """Order, OrderItem and OrderStatusHistory models."""
 
 import uuid
+from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 
-from sqlalchemy import ForeignKey, Numeric, String, Text
+from sqlalchemy import DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -28,7 +29,8 @@ class Order(Base):
 
     __tablename__ = "orders"
 
-    tiktok_order_id: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=True)
+    # One TikTok order may be split into several Miaoshou packages: not unique.
+    tiktok_order_id: Mapped[str] = mapped_column(String(100), index=True, nullable=True)
     status: Mapped[str] = mapped_column(
         String(50), default=OrderStatus.PENDING, nullable=False, index=True
     )
@@ -41,6 +43,27 @@ class Order(Base):
     shipping_address: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     tracking_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
     remark: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Synced from Miaoshou packages (see order_sync_service).
+    miaoshou_package_id: Mapped[str | None] = mapped_column(String(32), unique=True, nullable=True)
+    app_package_status: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    status_text: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    platform_status: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    shop_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    shop_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    site: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    product_amount: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
+    commission_fee: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
+    escrow_amount: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
+    shipping_fee: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
+    ordered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ship_by_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    shipped_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    fulfillment_type: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    logistics: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    raw: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     items: Mapped[list["OrderItem"]] = relationship(
@@ -74,6 +97,8 @@ class OrderItem(Base):
     subtotal: Mapped[Decimal] = mapped_column(
         Numeric(14, 2), nullable=False, default=Decimal("0.00")
     )
+    image_url: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    platform_sku_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # Relationships
     order: Mapped["Order"] = relationship("Order", back_populates="items")

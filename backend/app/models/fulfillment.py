@@ -1,10 +1,11 @@
 """Fulfillment models: PurchaseOrder and Shipment."""
 
 import uuid
+from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 
-from sqlalchemy import ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -38,6 +39,14 @@ class PurchaseOrder(Base):
     linked_order_ids: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     tracking_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
     remark: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Synced from Miaoshou purchase orders (#161).
+    miaoshou_po_id: Mapped[str | None] = mapped_column(String(32), unique=True, nullable=True)
+    po_sn: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    supplier_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    items: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    ordered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    raw: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     shipments: Mapped[list["Shipment"]] = relationship(
@@ -112,6 +121,8 @@ class Shipment(Base):
     destination: Mapped[str | None] = mapped_column(String(200), nullable=True)
     estimated_delivery: Mapped[str | None] = mapped_column(String(50), nullable=True)
     logistics_events: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    # Purchase-order shipping package from Miaoshou (#161 shippingList.packageList).
+    miaoshou_package_id: Mapped[str | None] = mapped_column(String(32), unique=True, nullable=True)
 
     # Relationships
     purchase_order: Mapped["PurchaseOrder"] = relationship(

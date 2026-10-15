@@ -13,7 +13,7 @@ from app.config import agent_settings
 async def lifespan(app: FastAPI):
     print(f"Agent service starting, LLM model: {agent_settings.llm_model}")
     print(f"TikTok mock mode: {agent_settings.tiktok_shop_mock_mode}")
-    print(f"1688 mock mode: {agent_settings.alibaba_1688_mock_mode}")
+    print("1688 sourcing tools: backend 1688 CLI provider (read-only)")
     yield
     print("Agent service shutting down...")
 

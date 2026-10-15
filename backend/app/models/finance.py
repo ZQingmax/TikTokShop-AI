@@ -32,14 +32,12 @@ class FinanceRecord(Base):
         Numeric(14, 2), nullable=False
     )
     currency: Mapped[str] = mapped_column(String(10), default="USD", nullable=False)
-    exchange_rate: Mapped[Decimal] = mapped_column(
-        Numeric(10, 6), nullable=False, default=Decimal("1.000000")
-    )
-    cny_amount: Mapped[Decimal] = mapped_column(
-        Numeric(14, 2), nullable=False, default=Decimal("0.00")
-    )
+    # NULL when no CNY rate is known; never defaulted to 1.0 / 0.00.
+    exchange_rate: Mapped[Decimal | None] = mapped_column(Numeric(10, 6), nullable=True)
+    cny_amount: Mapped[Decimal | None] = mapped_column(Numeric(14, 2), nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     site: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    miaoshou_package_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     def __repr__(self) -> str:
         return f"<FinanceRecord {self.type} {self.amount} {self.currency}>"

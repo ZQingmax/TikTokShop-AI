@@ -1,0 +1,201 @@
+{
+  "executed_at": "2026-10-14T19:52:04+0800",
+  "box_id": "a4100010-a0e0-43d5-a70b-f9a5bfe7ee74",
+  "config": {
+    "configured": true,
+    "text_model": "qwen3.5-plus",
+    "image_model": "qwen-image-3.0",
+    "translation_model": "qwen-mt-image-2.0",
+    "resolution": "1024x1024",
+    "language": "en"
+  },
+  "tasks": [
+    {
+      "id": "c7953d79-a947-434c-a5c4-a3c64d6c6726",
+      "kind": "ocr",
+      "status": "succeeded",
+      "stage": "complete",
+      "error_code": null,
+      "error_message": null,
+      "model": "qwen3.5-plus",
+      "request_id": "chatcmpl-cbe507d2-2b94-9672-8917-75b523f95f30",
+      "usage": {
+        "total_tokens": 705,
+        "prompt_tokens": 651,
+        "completion_tokens": 54,
+        "prompt_tokens_details": {
+          "text_tokens": 528,
+          "image_tokens": 123
+        },
+        "completion_tokens_details": {
+          "text_tokens": 54
+        }
+      },
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null,
+      "output": {
+        "blocks": [
+          {
+            "text": "shop443207q41662.1688.com",
+            "image_url": "https://cbu01.alicdn.com/img/ibank/O1CN01Y3x0bUd4U5E0h3Gu_!!2223126840392-0-cib.jpg",
+            "image_index": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "3543a1c8-07f0-414f-94b8-e29ee78feb97",
+      "kind": "copy",
+      "status": "succeeded",
+      "stage": "complete",
+      "error_code": null,
+      "error_message": null,
+      "model": "qwen3.5-plus",
+      "request_id": "chatcmpl-a260659c-a7ff-9a25-9812-143820df6ebf",
+      "usage": {
+        "total_tokens": 873,
+        "prompt_tokens": 490,
+        "completion_tokens": 383,
+        "prompt_tokens_details": {
+          "text_tokens": 490
+        },
+        "completion_tokens_details": {
+          "text_tokens": 383
+        }
+      },
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null,
+      "output": {
+        "notes": "The product is a handmade storage basket featuring a combination of PP (polypropylene) for the exterior and lid, with a fabric interior lining. It comes with a lid for covered storage and is designed to be stackable. The source data specifies two size options: Small (15*14.5) and Large (15*18), though the unit of measurement (cm or inches) is not explicitly defined in the provided text, the numbers are retained as given. The item is described as suitable for storing cables and general sundries. No specific certifications, exact weight capacity beyond the '2kg' label which may refer to product weight or rough capacity, or sales claims are included as they are not confirmed facts. The supplier is identified as a craft merchant from Shibei District.",
+        "title": "Handmade PP Woven Storage Basket with Lid for Desktop Organization",
+        "bullet_points": [
+          "Features a modern minimalist design with a round shape suitable for living rooms and bedrooms.",
+          "Constructed with an external PP body and an internal fabric lining for durability.",
+          "Equipped with a matching PP lid that opens and closes to keep contents dust-free.",
+          "Designed with a stackable structure to maximize vertical storage space efficiently.",
+          "Ideal for organizing miscellaneous items such as earphone cables, wires, and small杂物.",
+          "Handcrafted construction adds a unique artisanal touch to home decor.",
+          "Available in multiple sizes including Small (15*14.5) and Large (15*18).",
+          "Made from PP material which is lightweight and easy to clean.",
+          "Originates from Shandong, known for its quality craft production.",
+          "Functions as a versatile storage bin for desktops, shelves, or tables."
+        ]
+      }
+    },
+    {
+      "id": "0cd71a1a-d071-439d-a6cf-71ad527cb512",
+      "kind": "generate",
+      "status": "failed",
+      "stage": "calling_model",
+      "error_code": "upstream_404",
+      "error_message": "百炼 HTTP 404",
+      "model": null,
+      "request_id": null,
+      "usage": null,
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null,
+      "output": null
+    },
+    {
+      "id": "5bd39248-ae7d-4171-adb9-8e0a0e0d5ed8",
+      "kind": "edit",
+      "status": "failed",
+      "stage": "calling_model",
+      "error_code": "upstream_404",
+      "error_message": "百炼 HTTP 404",
+      "model": null,
+      "request_id": null,
+      "usage": null,
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null,
+      "output": null
+    },
+    {
+      "id": "625cd350-2b7b-4815-a6c1-70c81b7dbab6",
+      "kind": "translate",
+      "status": "succeeded",
+      "stage": "complete",
+      "error_code": null,
+      "error_message": null,
+      "model": "qwen-mt-image-2.0",
+      "request_id": "f51c4e0e-fcd6-9fca-8a6d-3aee97626f38",
+      "usage": {
+        "image_count": 1
+      },
+      "upstream_task_id": "ef584cc8-496e-4e21-9672-50f4d3596a0b",
+      "asset_id": "0b2a118c-9cf9-4717-bcce-f0c12b8f202b",
+      "width": 342,
+      "height": 342,
+      "public_url": "https://earth-rt.chengji-inc.com/picture/15215278/2026-10-14/3f3e0f61-3f93-43cf-8b38-b06aedb4a4a8.jpeg",
+      "output": null
+    }
+  ],
+  "draft_id": "6265dcea-65c5-4890-9d4f-16dc4c1e108e",
+  "source_product_id": "1090443573903",
+  "validation": {
+    "valid": false,
+    "errors": [
+      {
+        "field": "shop_id",
+        "message": "请选择目标店铺"
+      },
+      {
+        "field": "packageLength",
+        "message": "packageLength 须为 1–1000（重量 kg，尺寸 cm）"
+      },
+      {
+        "field": "packageWidth",
+        "message": "packageWidth 须为 1–1000（重量 kg，尺寸 cm）"
+      },
+      {
+        "field": "packageHeight",
+        "message": "packageHeight 须为 1–1000（重量 kg，尺寸 cm）"
+      },
+      {
+        "field": "cid",
+        "message": "请选择有效的末级类目"
+      },
+      {
+        "field": "skuPropertyList",
+        "message": "规格/属性须映射到当前类目的真实属性 ID"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;大号（15*18）;; 的 key 必须为排序后的属性值 ID 组合"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;大号（15*18）;; 请设置正数销售价"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;大号（15*18）;; 请设置店铺仓库库存"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;小号（15*14.5）;; 的 key 必须为排序后的属性值 ID 组合"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;小号（15*14.5）;; 请设置正数销售价"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;小号（15*14.5）;; 请设置店铺仓库库存"
+      }
+    ],
+    "checked_at": "2026-10-14T11:52:25.696942+00:00"
+  }
+}

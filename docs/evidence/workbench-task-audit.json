@@ -1,0 +1,218 @@
+{
+  "note": "User requested minimal paid testing; live runner stopped. Read-only audit only. No automatic model resubmission.",
+  "tasks": [
+    {
+      "id": "c7953d79-a947-434c-a5c4-a3c64d6c6726",
+      "draft_id": "6265dcea-65c5-4890-9d4f-16dc4c1e108e",
+      "kind": "ocr",
+      "status": "succeeded",
+      "stage": "complete",
+      "error_code": null,
+      "error_message": null,
+      "model": "qwen3.5-plus",
+      "request_id": "chatcmpl-cbe507d2-2b94-9672-8917-75b523f95f30",
+      "usage": {
+        "total_tokens": 705,
+        "prompt_tokens": 651,
+        "completion_tokens": 54,
+        "prompt_tokens_details": {
+          "text_tokens": 528,
+          "image_tokens": 123
+        },
+        "completion_tokens_details": {
+          "text_tokens": 54
+        }
+      },
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null
+    },
+    {
+      "id": "3543a1c8-07f0-414f-94b8-e29ee78feb97",
+      "draft_id": "6265dcea-65c5-4890-9d4f-16dc4c1e108e",
+      "kind": "copy",
+      "status": "succeeded",
+      "stage": "complete",
+      "error_code": null,
+      "error_message": null,
+      "model": "qwen3.5-plus",
+      "request_id": "chatcmpl-a260659c-a7ff-9a25-9812-143820df6ebf",
+      "usage": {
+        "total_tokens": 873,
+        "prompt_tokens": 490,
+        "completion_tokens": 383,
+        "prompt_tokens_details": {
+          "text_tokens": 490
+        },
+        "completion_tokens_details": {
+          "text_tokens": 383
+        }
+      },
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null
+    },
+    {
+      "id": "0cd71a1a-d071-439d-a6cf-71ad527cb512",
+      "draft_id": "6265dcea-65c5-4890-9d4f-16dc4c1e108e",
+      "kind": "generate",
+      "status": "failed",
+      "stage": "calling_model",
+      "error_code": "upstream_404",
+      "error_message": "百炼 HTTP 404",
+      "model": null,
+      "request_id": null,
+      "usage": null,
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null
+    },
+    {
+      "id": "5bd39248-ae7d-4171-adb9-8e0a0e0d5ed8",
+      "draft_id": "6265dcea-65c5-4890-9d4f-16dc4c1e108e",
+      "kind": "edit",
+      "status": "failed",
+      "stage": "calling_model",
+      "error_code": "upstream_404",
+      "error_message": "百炼 HTTP 404",
+      "model": null,
+      "request_id": null,
+      "usage": null,
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null
+    },
+    {
+      "id": "625cd350-2b7b-4815-a6c1-70c81b7dbab6",
+      "draft_id": "6265dcea-65c5-4890-9d4f-16dc4c1e108e",
+      "kind": "translate",
+      "status": "succeeded",
+      "stage": "complete",
+      "error_code": null,
+      "error_message": null,
+      "model": "qwen-mt-image-2.0",
+      "request_id": "f51c4e0e-fcd6-9fca-8a6d-3aee97626f38",
+      "usage": {
+        "image_count": 1
+      },
+      "upstream_task_id": "ef584cc8-496e-4e21-9672-50f4d3596a0b",
+      "asset_id": "0b2a118c-9cf9-4717-bcce-f0c12b8f202b",
+      "width": 342,
+      "height": 342,
+      "public_url": "https://earth-rt.chengji-inc.com/picture/15215278/2026-10-14/3f3e0f61-3f93-43cf-8b38-b06aedb4a4a8.jpeg"
+    },
+    {
+      "id": "57a0eb93-7589-4bba-94be-045dc3c4c410",
+      "draft_id": "f55d2ccb-47a4-49ce-87a0-728a8303e039",
+      "kind": "copy",
+      "status": "failed",
+      "stage": "calling_model",
+      "error_code": "target_language",
+      "error_message": "英文文案夹杂中文，未通过目标语言检查，请重新生成或手动翻译",
+      "model": null,
+      "request_id": null,
+      "usage": null,
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null
+    },
+    {
+      "id": "8c1e7cc0-17b8-4124-9d86-0c4f77d5db1c",
+      "draft_id": "f55d2ccb-47a4-49ce-87a0-728a8303e039",
+      "kind": "generate",
+      "status": "uncertain",
+      "stage": "calling_model",
+      "error_code": "worker_interrupted",
+      "error_message": "Worker 中断；已保存步骤保留，未确认的外部请求不会自动重复提交",
+      "model": null,
+      "request_id": null,
+      "usage": null,
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null
+    }
+  ],
+  "drafts": [
+    {
+      "id": "6265dcea-65c5-4890-9d4f-16dc4c1e108e",
+      "shop_id": 19282337,
+      "version": 2,
+      "checked_version": null,
+      "synced_version": null,
+      "validation": null
+    },
+    {
+      "id": "f55d2ccb-47a4-49ce-87a0-728a8303e039",
+      "shop_id": null,
+      "version": 1,
+      "checked_version": null,
+      "synced_version": null,
+      "validation": {
+        "valid": false,
+        "errors": [
+          {
+            "field": "shop_id",
+            "message": "请选择目标店铺"
+          },
+          {
+            "field": "packageLength",
+            "message": "packageLength 须为 1–1000（重量 kg，尺寸 cm）"
+          },
+          {
+            "field": "packageWidth",
+            "message": "packageWidth 须为 1–1000（重量 kg，尺寸 cm）"
+          },
+          {
+            "field": "packageHeight",
+            "message": "packageHeight 须为 1–1000（重量 kg，尺寸 cm）"
+          },
+          {
+            "field": "cid",
+            "message": "请选择有效的末级类目"
+          },
+          {
+            "field": "skuPropertyList",
+            "message": "规格/属性须映射到当前类目的真实属性 ID"
+          },
+          {
+            "field": "skuMap",
+            "message": "SKU ;大号（15*18）;; 的 key 必须为排序后的属性值 ID 组合"
+          },
+          {
+            "field": "skuMap",
+            "message": "SKU ;大号（15*18）;; 请设置正数销售价"
+          },
+          {
+            "field": "skuMap",
+            "message": "SKU ;大号（15*18）;; 请设置店铺仓库库存"
+          },
+          {
+            "field": "skuMap",
+            "message": "SKU ;小号（15*14.5）;; 的 key 必须为排序后的属性值 ID 组合"
+          },
+          {
+            "field": "skuMap",
+            "message": "SKU ;小号（15*14.5）;; 请设置正数销售价"
+          },
+          {
+            "field": "skuMap",
+            "message": "SKU ;小号（15*14.5）;; 请设置店铺仓库库存"
+          }
+        ],
+        "checked_at": "2026-10-14T12:00:37.827687+00:00"
+      }
+    }
+  ]
+}

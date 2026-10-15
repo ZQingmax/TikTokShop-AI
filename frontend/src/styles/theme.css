@@ -1,0 +1,123 @@
+/* 蓝白默认值；主题选择保存在本机，布局与组件共用同一组颜色。 */
+:root {
+  --app-brand: #1677ff;
+
+  --el-color-primary: #1677ff;
+  --el-color-primary-light-3: #5ca0ff;
+  --el-color-primary-light-5: #8bbbff;
+  --el-color-primary-light-7: #b9d6ff;
+  --el-color-primary-light-8: #d0e4ff;
+  --el-color-primary-light-9: #e8f1ff;
+  --el-color-primary-dark-2: #125fcc;
+
+  --app-aside-bg: #ffffff;
+  --app-aside-logo-bg: linear-gradient(135deg, #1677ff 0%, #4096ff 100%);
+  --app-aside-text: #4e5969;
+  --app-aside-hover: #f2f7ff;
+  --app-aside-active-bg: #e8f1ff;
+  --app-aside-border: #e8eef7;
+  --app-header-bg: #ffffff;
+  --app-header-border: #e8eef7;
+  --app-main-bg: #f4f8ff;
+  --app-soft-bg: #f5f8fc;
+  --app-card-border: #e3ebf7;
+  --app-login-bg: linear-gradient(160deg, #eef5ff 0%, #ffffff 55%, #e6f0ff 100%);
+}
+
+:root[data-theme='green'] {
+  --app-brand: #16865b;
+  --el-color-primary: #16865b;
+  --el-color-primary-light-3: #5ca98c;
+  --el-color-primary-light-5: #8bc3ad;
+  --el-color-primary-light-7: #b9dbce;
+  --el-color-primary-light-8: #d0e7de;
+  --el-color-primary-light-9: #e8f3ef;
+  --el-color-primary-dark-2: #126b49;
+  --app-aside-logo-bg: linear-gradient(135deg, #16865b, #38a87b);
+  --app-aside-hover: #f0f8f4;
+  --app-aside-active-bg: #e8f3ef;
+  --app-aside-border: #e2eee7;
+  --app-header-border: #e2eee7;
+  --app-main-bg: #f3f9f5;
+  --app-soft-bg: #f1f6f3;
+  --app-card-border: #e0ebe5;
+  --app-login-bg: linear-gradient(160deg, #edf7f0, #ffffff 55%, #e4f2e9);
+}
+
+:root[data-theme='purple'] {
+  --app-brand: #8054d9;
+  --el-color-primary: #8054d9;
+  --el-color-primary-light-3: #a687e4;
+  --el-color-primary-light-5: #c0aaec;
+  --el-color-primary-light-7: #d9ccf4;
+  --el-color-primary-light-8: #e6ddf7;
+  --el-color-primary-light-9: #f2eefb;
+  --el-color-primary-dark-2: #6643ae;
+  --app-aside-logo-bg: linear-gradient(135deg, #8054d9, #a17ae8);
+  --app-aside-hover: #f7f3fc;
+  --app-aside-active-bg: #f2eefb;
+  --app-aside-border: #ece5f4;
+  --app-header-border: #ece5f4;
+  --app-main-bg: #f8f5fc;
+  --app-soft-bg: #f5f2f9;
+  --app-card-border: #eae3f2;
+  --app-login-bg: linear-gradient(160deg, #f3edfc, #ffffff 55%, #eee5f8);
+}
+
+:root[data-theme='yellow'] {
+  /* 较深的金黄色保证白底上的文字、按钮仍清晰可读。 */
+  --app-brand: #a66b00;
+  --el-color-primary: #a66b00;
+  --el-color-primary-light-3: #c1984d;
+  --el-color-primary-light-5: #d3b580;
+  --el-color-primary-light-7: #e4d3b3;
+  --el-color-primary-light-8: #ede1cc;
+  --el-color-primary-light-9: #f6f0e6;
+  --el-color-primary-dark-2: #855600;
+  --app-aside-logo-bg: linear-gradient(135deg, #a66b00, #cf9a20);
+  --app-aside-hover: #fff9e9;
+  --app-aside-active-bg: #fff2cc;
+  --app-aside-border: #f0e8d3;
+  --app-header-border: #f0e8d3;
+  --app-main-bg: #fffbef;
+  --app-soft-bg: #faf6e9;
+  --app-card-border: #eee6d0;
+  --app-login-bg: linear-gradient(160deg, #fff6da, #ffffff 55%, #fcf0cc);
+}
+
+html.dark[data-theme='dark'] {
+  color-scheme: dark;
+  --app-brand: #8faee0;
+  --el-color-primary: #8faee0;
+  --el-color-primary-light-3: #7188ad;
+  --el-color-primary-light-5: #53657f;
+  --el-color-primary-light-7: #354254;
+  --el-color-primary-light-8: #2b3543;
+  --el-color-primary-light-9: #222a35;
+  --el-color-primary-dark-2: #a5bee6;
+  --el-bg-color: #20242b;
+  --el-bg-color-page: #181c22;
+  --el-bg-color-overlay: #252a33;
+  --app-aside-bg: #20242b;
+  --app-aside-logo-bg: linear-gradient(135deg, #344563, #405674);
+  --app-aside-text: #c1c8d2;
+  --app-aside-hover: #2b323d;
+  --app-aside-active-bg: #2b3b52;
+  --app-aside-border: #343b47;
+  --app-header-bg: #20242b;
+  --app-header-border: #343b47;
+  --app-main-bg: #181c22;
+  --app-soft-bg: #252a33;
+  --app-card-border: #343b47;
+  --app-login-bg: linear-gradient(160deg, #1b2432, #181c22 55%, #222c39);
+}
+
+body {
+  background: var(--app-main-bg);
+  color: var(--el-text-color-primary);
+}
+
+/* 跟随主题的卡片描边。 */
+.el-card {
+  --el-card-border-color: var(--app-card-border);
+}

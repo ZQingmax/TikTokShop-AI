@@ -1,0 +1,87 @@
+{
+  "executed_at": "2026-10-14T20:00:30+0800",
+  "box_id": "a4100010-a0e0-43d5-a70b-f9a5bfe7ee74",
+  "config": {
+    "configured": true,
+    "text_model": "qwen3.5-plus",
+    "image_model": "qwen-image-3.0",
+    "translation_model": "qwen-mt-image-2.0",
+    "resolution": "1024x1024",
+    "language": "en"
+  },
+  "tasks": [
+    {
+      "id": "57a0eb93-7589-4bba-94be-045dc3c4c410",
+      "kind": "copy",
+      "status": "failed",
+      "stage": "calling_model",
+      "error_code": "target_language",
+      "error_message": "英文文案夹杂中文，未通过目标语言检查，请重新生成或手动翻译",
+      "model": null,
+      "request_id": null,
+      "usage": null,
+      "upstream_task_id": null,
+      "asset_id": null,
+      "width": null,
+      "height": null,
+      "public_url": null,
+      "output": null
+    }
+  ],
+  "draft_id": "f55d2ccb-47a4-49ce-87a0-728a8303e039",
+  "source_product_id": "1090443573903",
+  "validation": {
+    "valid": false,
+    "errors": [
+      {
+        "field": "shop_id",
+        "message": "请选择目标店铺"
+      },
+      {
+        "field": "packageLength",
+        "message": "packageLength 须为 1–1000（重量 kg，尺寸 cm）"
+      },
+      {
+        "field": "packageWidth",
+        "message": "packageWidth 须为 1–1000（重量 kg，尺寸 cm）"
+      },
+      {
+        "field": "packageHeight",
+        "message": "packageHeight 须为 1–1000（重量 kg，尺寸 cm）"
+      },
+      {
+        "field": "cid",
+        "message": "请选择有效的末级类目"
+      },
+      {
+        "field": "skuPropertyList",
+        "message": "规格/属性须映射到当前类目的真实属性 ID"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;大号（15*18）;; 的 key 必须为排序后的属性值 ID 组合"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;大号（15*18）;; 请设置正数销售价"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;大号（15*18）;; 请设置店铺仓库库存"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;小号（15*14.5）;; 的 key 必须为排序后的属性值 ID 组合"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;小号（15*14.5）;; 请设置正数销售价"
+      },
+      {
+        "field": "skuMap",
+        "message": "SKU ;小号（15*14.5）;; 请设置店铺仓库库存"
+      }
+    ],
+    "checked_at": "2026-10-14T12:00:37.827687+00:00"
+  }
+}

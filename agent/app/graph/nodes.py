@@ -11,6 +11,7 @@ from app.services.selection_service import selection_service
 from app.services.material_service import material_service
 from app.services.pricing_service import pricing_service
 from app.clients.tiktok_client import get_tiktok_client
+from app.tools.alibaba_tools import search_1688_products, to_selection_product
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,18 @@ async def selection_agent_node(state: AgentState) -> dict:
 
     product_data = state.get("product_data", {})
     products = product_data.get("candidates", [])
+
+    # 没有候选但给了关键词时，经后端统一 Provider 搜索 1688 真实商品（只读，不自动保存/采购）
+    keyword = product_data.get("keyword")
+    if not products and keyword:
+        found = await search_1688_products(keyword, max_results=product_data.get("max_results", 20))
+        if not found.get("ok"):
+            state["error"] = f"1688 搜索失败：{(found.get('error') or {}).get('message', '未知错误')}"
+            state["product_data"] = {**product_data, "candidates": [], "total_found": 0, "top_recommendations": [],
+                                     "search_error": found.get("error")}
+            state["updated_at"] = datetime.now(timezone.utc).isoformat()
+            return state
+        products = [to_selection_product(x) for x in found.get("items", [])]
 
     if not products:
         # No products to evaluate

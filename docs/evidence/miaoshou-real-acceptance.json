@@ -1,0 +1,309 @@
+{
+  "exported_at": "2026-10-13T09:51:36.458453+00:00",
+  "migration_version": "554b31562dd4",
+  "counts": {
+    "users": 3,
+    "products": 29,
+    "orders": 50,
+    "sourcing_candidates": 3,
+    "sourcing_miaoshou_tasks": 2,
+    "sourcing_analysis_tasks": 4,
+    "sourcing_ai_evaluations": 3,
+    "sourcing_reviews": 4
+  },
+  "source_jobs": [
+    {
+      "id": "15054092-81c7-4ce1-a393-746cab5fb9ea",
+      "kind": "collect",
+      "target_market": "TH",
+      "currency": "CNY",
+      "status": "succeeded",
+      "stage": "complete",
+      "poll_count": 3,
+      "error_code": null,
+      "error_message": null,
+      "created_at": "2026-10-13 09:33:28.191336+00:00",
+      "updated_at": "2026-10-13 09:33:45.515005+00:00",
+      "external_started_at": "2026-10-13 09:33:29.613263+00:00",
+      "finished_at": "2026-10-13 09:33:45.515570+00:00",
+      "items": [
+        {
+          "source_item_id": "635021027818",
+          "url": "https://detail.1688.com/offer/635021027818.html",
+          "common_detail_id": "4063817105",
+          "candidate_id": "82811147-b81d-46d3-bf37-3b80232c5913",
+          "state": "saved",
+          "analysis_task_id": "6d513cde-787e-4caf-b915-481e98c63c5e",
+          "sync_status": "synced",
+          "completeness": "ready",
+          "updated": false
+        }
+      ],
+      "completed": 1,
+      "total": 1,
+      "response": {
+        "result": "success",
+        "code": "success",
+        "sourceItemIdAndDetailIdMap": {
+          "635021027818": 4063817105
+        }
+      }
+    },
+    {
+      "id": "a1fdfeea-3c3d-4cfa-baad-4991bbd2caa8",
+      "kind": "sync",
+      "target_market": "TH",
+      "currency": "CNY",
+      "status": "succeeded",
+      "stage": "complete",
+      "poll_count": 1,
+      "error_code": null,
+      "error_message": null,
+      "created_at": "2026-10-13 09:42:50.507852+00:00",
+      "updated_at": "2026-10-13 09:42:53.209674+00:00",
+      "external_started_at": null,
+      "finished_at": "2026-10-13 09:42:53.209791+00:00",
+      "items": [
+        {
+          "common_detail_id": "4063817105",
+          "candidate_id": "82811147-b81d-46d3-bf37-3b80232c5913",
+          "state": "saved",
+          "analysis_task_id": "6d513cde-787e-4caf-b915-481e98c63c5e",
+          "sync_status": "synced",
+          "completeness": "ready",
+          "updated": false
+        }
+      ],
+      "completed": 1,
+      "total": 1,
+      "response": null
+    }
+  ],
+  "candidates": [
+    {
+      "id": "82811147-b81d-46d3-bf37-3b80232c5913",
+      "input_version": 1,
+      "source_product_id": "635021027818",
+      "common_collect_box_detail_id": "4063817105",
+      "product_url": "https://detail.1688.com/offer/635021027818.html",
+      "market": "TH",
+      "currency_confirmed_by_operator": "CNY",
+      "title": "欧维加厚塑料方盘 长方形五金工具零件收纳盒 养殖塑料浅盘周转箱",
+      "spu_price": "6.2",
+      "stock": 36068767,
+      "weight": "1.1",
+      "sku_count": 8,
+      "sku_price_fields": [
+        {
+          "key": ";方盘2#加厚白色560*370*80mm;;",
+          "price": 12,
+          "oriPrice": 12,
+          "stock": 528233,
+          "weight": 0.58,
+          "packageLength": 56,
+          "packageWidth": 37,
+          "packageHeight": 8
+        },
+        {
+          "key": ";方盘2#加厚蓝色560*370*80mm;;",
+          "price": 12,
+          "oriPrice": 12,
+          "stock": 5368647,
+          "weight": 0.58,
+          "packageLength": 56,
+          "packageWidth": 37,
+          "packageHeight": 8
+        },
+        {
+          "key": ";方盘3#加厚白色470*305*70mm;;",
+          "price": 8.2,
+          "oriPrice": 8.2,
+          "stock": 5341889,
+          "weight": 0.4,
+          "packageLength": 47,
+          "packageWidth": 30.5,
+          "packageHeight": 7
+        },
+        {
+          "key": ";方盘3#加厚蓝色470*305*70mm;;",
+          "price": 8.2,
+          "oriPrice": 8.2,
+          "stock": 5431572,
+          "weight": 0.4,
+          "packageLength": 47,
+          "packageWidth": 30.5,
+          "packageHeight": 7
+        },
+        {
+          "key": ";方盘4#加厚白色370*250*65mm;;",
+          "price": 6.2,
+          "oriPrice": 6.2,
+          "stock": 5228384,
+          "weight": 0.3,
+          "packageLength": 37,
+          "packageWidth": 25,
+          "packageHeight": 6.5
+        },
+        {
+          "key": ";方盘4#加厚蓝色370*250*65mm;;",
+          "price": 6.2,
+          "oriPrice": 6.2,
+          "stock": 5294996,
+          "weight": 0.3,
+          "packageLength": 37,
+          "packageWidth": 25,
+          "packageHeight": 6.5
+        },
+        {
+          "key": ";方盘1#加厚白色615*400*125mm;;",
+          "price": 22,
+          "oriPrice": 22,
+          "stock": 4521937,
+          "weight": 1.1,
+          "packageLength": 61.5,
+          "packageWidth": 40,
+          "packageHeight": 12.5
+        },
+        {
+          "key": ";方盘1#加厚蓝色615*400*125mm;;",
+          "price": 22,
+          "oriPrice": 22,
+          "stock": 4353109,
+          "weight": 1.1,
+          "packageLength": 61.5,
+          "packageWidth": 40,
+          "packageHeight": 12.5
+        }
+      ],
+      "image_count": 12,
+      "units": {
+        "stock": "数量（原始整数）",
+        "weight": "kg",
+        "currency": "接口未给出，操作人确认",
+        "packageWidth": "cm",
+        "packageHeight": "cm",
+        "packageLength": "cm",
+        "skuMap.weight": "kg",
+        "skuMap.packageWidth": "cm",
+        "skuMap.packageHeight": "cm",
+        "skuMap.packageLength": "cm"
+      },
+      "price_meanings": {
+        "price": "SPU 货源价格",
+        "skuMap.price": "妙手公共采集箱 SKU price（文档标为售价）",
+        "skuMap.oriPrice": "妙手原始售价字段",
+        "tiktok_sale_price": "尚未设置；不从公共箱价格推导"
+      },
+      "supplier_info_keys": [],
+      "meta_info_keys": [
+        "oriItemNum",
+        "price",
+        "source",
+        "sourceAddress",
+        "sourceAddressFw",
+        "sourceNameFw"
+      ],
+      "detail_response_result": "success",
+      "detail_response_code": "success",
+      "raw_response_bytes": 11762,
+      "raw_response_sha256": "d905236060e3f330606ddba6ae77092a753ba7624e395925db39658bdf5ae13b",
+      "sync_status": "synced",
+      "synced_at": "2026-10-13 09:42:53.193175+00:00",
+      "review_status": "approved",
+      "favorite": false
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "0a7d6051-bd27-471f-8079-c2073e679af6",
+      "task_id": "6d513cde-787e-4caf-b915-481e98c63c5e",
+      "candidate_id": "82811147-b81d-46d3-bf37-3b80232c5913",
+      "input_version": 1,
+      "stale": false,
+      "visual_score": "78.00",
+      "rule_score": 80,
+      "text_status": "succeeded",
+      "vision": {
+        "model": "qwen3-vl-plus",
+        "usage": {
+          "total_tokens": 11603,
+          "prompt_tokens": 10914,
+          "completion_tokens": 689,
+          "prompt_tokens_details": {
+            "text_tokens": 3408,
+            "image_tokens": 7506,
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "text_tokens": 689
+          }
+        },
+        "images": [
+          {
+            "url": "https://cbu01.alicdn.com/img/ibank/O1CN01N4mv1n1rxHNrO2eeu_!!2209137225697-0-cib.jpg",
+            "bytes": 390922,
+            "sha256": "d1b050e3e91553ab0380786204ad5ab3ae1d45ffd177487f14df243d05e8bb91"
+          },
+          {
+            "url": "https://cbu01.alicdn.com/img/ibank/O1CN01vhPwZR1rxHNt3rJu1_!!2209137225697-0-cib.jpg",
+            "bytes": 613231,
+            "sha256": "16b8804b1bbee2840c33466ee84fa7deb367fe9ce20ff1092414bbefc370959c"
+          },
+          {
+            "url": "https://cbu01.alicdn.com/img/ibank/O1CN01zaZiE91rxHNtnJULM_!!2209137225697-0-cib.jpg",
+            "bytes": 354468,
+            "sha256": "0339282624fdade5d33f62180b57adb1ff01752449f6e9a6aeb4e6039a29912f"
+          }
+        ],
+        "provider": "bailian",
+        "called_at": "2026-10-13T09:34:13.276223+00:00",
+        "request_id": "chatcmpl-3e4ff36b-ebcf-92b9-b267-9411a4ff8fb9",
+        "request_parameters": {
+          "thinking": null,
+          "max_tokens": 3500
+        }
+      },
+      "text": {
+        "model": "deepseek-flash",
+        "usage": {
+          "total_tokens": 5160,
+          "prompt_tokens": 3845,
+          "completion_tokens": 1315,
+          "prompt_tokens_details": {
+            "cached_tokens": 640
+          },
+          "prompt_cache_hit_tokens": 640,
+          "prompt_cache_miss_tokens": 3205
+        },
+        "provider": "deepseek",
+        "called_at": "2026-10-13T09:34:22.374242+00:00",
+        "request_id": "3e5c3502-0283-4588-a226-a4917edfd6fc",
+        "request_parameters": {
+          "thinking": {
+            "type": "disabled"
+          },
+          "max_tokens": 3500
+        }
+      },
+      "prompt_version": "sourcing-v1.1",
+      "schema_version": "1"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "d2de8aee-a3cb-4496-9811-efbd1ec83866",
+      "candidate_id": "82811147-b81d-46d3-bf37-3b80232c5913",
+      "evaluation_id": "0a7d6051-bd27-471f-8079-c2073e679af6",
+      "input_version": 1,
+      "reviewer_id": "a23a64d5-fdb2-40bf-859a-989702989fe2",
+      "action": "approve",
+      "note": "妙手集成联调验收：通过仅用于审核持久化流程验证，不代表运营上架批准。SPU 价格、库存和尺寸为妙手原值；供应商资质、材质检测及泰国实际需求仍需业务人员核实。",
+      "created_at": "2026-10-13 09:47:39.697737+00:00"
+    }
+  ],
+  "notes": [
+    "Persisted real responses; not unit-test fixtures",
+    "Raw response and supplier/meta values remain in PostgreSQL",
+    "Review decisions are functional acceptance only; no publishing authorization"
+  ]
+}

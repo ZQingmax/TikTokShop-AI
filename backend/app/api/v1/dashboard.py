@@ -1,32 +1,62 @@
-"""Dashboard API endpoints."""
+"""Dashboard API endpoints. Everything is computed from synced data; empty data stays empty.
 
-from datetime import datetime, timedelta, timezone
+Days follow Beijing time (the operators' and Miaoshou's clock). Sales are CNY from finance records
+derived from orders; amounts without a known CNY rate are reported separately, never mixed in."""
+
+from datetime import datetime, time, timedelta
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import func, select, desc, cast, Date
+from sqlalchemy import func, select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user
+from app.models.finance import FinanceRecord
+from app.models.listing import ListingTask
 from app.models.order import Order
 from app.models.product import Product
 from app.models.user import User
+from app.services import order_sync_service
 
 router = APIRouter(prefix="/v1/dashboard", tags=["Dashboard"])
+CHINA = ZoneInfo("Asia/Shanghai")
 
-# Status name mapping for Chinese labels
 STATUS_NAME_MAP = {
-    "pending": "待处理",
-    "matched": "已匹配",
-    "confirmed": "已确认",
-    "purchased": "已采购",
+    "pending": "待付款 / 待审核",
+    "confirmed": "待发货",
     "shipped": "已发货",
-    "delivered": "已送达",
     "completed": "已完成",
     "cancelled": "已取消",
-    "matching_failed": "匹配失败",
+    "refunding": "售后中",
+    "refunded": "已退款",
 }
+
+
+def day_range(day):
+    start = datetime.combine(day, time.min, tzinfo=CHINA)
+    return start, start + timedelta(days=1)
+
+
+def change(today, yesterday):
+    """Percent change vs yesterday; None when there is nothing to compare with."""
+    if not yesterday:
+        return None
+    return round(float((Decimal(today) - Decimal(yesterday)) / Decimal(yesterday) * 100), 1)
+
+
+async def day_orders(db, day):
+    start, end = day_range(day)
+    ordered = func.coalesce(Order.ordered_at, Order.created_at)
+    return await db.scalar(select(func.count()).select_from(Order).where(ordered >= start, ordered < end)) or 0
+
+
+async def day_sales(db, day):
+    start, end = day_range(day)
+    query = select(func.sum(FinanceRecord.cny_amount)).where(
+        FinanceRecord.type == "income", FinanceRecord.created_at >= start, FinanceRecord.created_at < end)
+    return await db.scalar(query) or Decimal("0")
 
 
 @router.get("/stats")
@@ -35,62 +65,33 @@ async def get_dashboard_stats(
     db: AsyncSession = Depends(get_db),
 ):
     """Dashboard statistics cards."""
-    today = datetime.now(timezone.utc).date()
-    today_start = datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
-
-    # Today's order count
-    today_orders_result = await db.execute(
-        select(func.count()).select_from(Order).where(
-            cast(Order.created_at, Date) == today
-        )
-    )
-    today_orders = today_orders_result.scalar() or 0
-
-    # Today's sales total
-    today_sales_result = await db.execute(
-        select(func.sum(Order.total_amount)).where(
-            cast(Order.created_at, Date) == today
-        )
-    )
-    today_sales = today_sales_result.scalar() or Decimal("0")
-
-    # Pending orders count
-    pending_result = await db.execute(
-        select(func.count()).select_from(Order).where(Order.status == "pending")
-    )
-    pending_orders = pending_result.scalar() or 0
-
-    # Total products count
-    products_result = await db.execute(
-        select(func.count()).select_from(Product)
-    )
-    total_products = products_result.scalar() or 0
-
-    # If no data at all, return mock data for demo purposes
-    has_data = today_orders > 0 or total_products > 0
-    if not has_data:
-        return {
-            # NOTE: mock data returned when database has no records
-            "today_orders": 128,
-            "today_sales": "32680.00",
-            "pending_orders": 23,
-            "total_products": 1056,
-            "order_trend": 12.5,
-            "sales_trend": 8.2,
-            "pending_trend": -3.1,
-            "product_trend": 2.4,
-        }
-
+    today = datetime.now(CHINA).date()
+    yesterday = today - timedelta(days=1)
+    today_orders, yesterday_orders = await day_orders(db, today), await day_orders(db, yesterday)
+    today_sales, yesterday_sales = await day_sales(db, today), await day_sales(db, yesterday)
+    to_ship = await db.scalar(select(func.count()).select_from(Order).where(Order.app_package_status == "wait_seller_send")) or 0
+    overdue = await db.scalar(select(func.count()).select_from(Order).where(
+        Order.app_package_status == "wait_seller_send", Order.ship_by_at < datetime.now(CHINA))) or 0
+    product_rows = (await db.execute(select(Product.miaoshou_status, func.count()).group_by(Product.miaoshou_status))).all()
+    products = {str(k or "local"): v for k, v in product_rows}
+    unconverted = await db.scalar(select(func.count()).select_from(FinanceRecord).where(
+        FinanceRecord.type == "income", FinanceRecord.cny_amount.is_(None))) or 0
+    listing_active = await db.scalar(select(func.count()).select_from(ListingTask).where(
+        ListingTask.status.in_(["queued", "running", "waiting"]))) or 0
     return {
         "today_orders": today_orders,
         "today_sales": str(today_sales),
-        "pending_orders": pending_orders,
-        "total_products": total_products,
-        # NOTE: trend values are mocked until historical data is available
-        "order_trend": 12.5,
-        "sales_trend": 8.2,
-        "pending_trend": -3.1,
-        "product_trend": 2.4,
+        "sales_currency": "CNY",
+        "pending_orders": to_ship,
+        "overdue_orders": overdue,
+        "total_products": sum(products.values()),
+        "published_products": products.get("published", 0),
+        "unpublished_products": products.get("notPublished", 0),
+        "listing_tasks_active": listing_active,
+        "unconverted_income_records": unconverted,
+        "order_trend": change(today_orders, yesterday_orders),
+        "sales_trend": change(today_sales, yesterday_sales),
+        "sync": await order_sync_service.states(db),
     }
 
 
@@ -100,27 +101,22 @@ async def get_recent_orders(
     db: AsyncSession = Depends(get_db),
 ):
     """Recent 10 orders."""
-    query = (
-        select(Order)
-        .order_by(desc(Order.created_at))
-        .limit(10)
-    )
-    result = await db.execute(query)
-    orders = result.scalars().all()
-
-    items = [
+    query = select(Order).order_by(desc(func.coalesce(Order.ordered_at, Order.created_at))).limit(10)
+    orders = (await db.execute(query)).scalars().all()
+    return [
         {
             "id": str(o.id),
             "tiktok_order_id": o.tiktok_order_id or "",
             "status": o.status,
+            "status_text": o.status_text,
             "total_amount": str(o.total_amount),
             "currency": o.currency,
-            "buyer_name": o.buyer_name or "",
-            "created_at": o.created_at.isoformat() if o.created_at else "",
+            "shop_name": o.shop_name or "",
+            "site": o.site or "",
+            "created_at": (o.ordered_at or o.created_at).isoformat() if (o.ordered_at or o.created_at) else "",
         }
         for o in orders
     ]
-    return items
 
 
 @router.get("/sales-trend")
@@ -128,32 +124,15 @@ async def get_sales_trend(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Last 7 days daily sales."""
-    today = datetime.now(timezone.utc).date()
-    dates = []
-    sales = []
-
+    """Last 7 days: CNY sales and order counts per Beijing day."""
+    today = datetime.now(CHINA).date()
+    dates, sales, orders = [], [], []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
         dates.append(day.strftime("%m-%d"))
-
-        result = await db.execute(
-            select(func.sum(Order.total_amount)).where(
-                cast(Order.created_at, Date) == day
-            )
-        )
-        day_total = result.scalar() or Decimal("0")
-        sales.append(float(day_total))
-
-    # If all zeros, return mock data
-    if all(s == 0 for s in sales):
-        return {
-            "dates": dates,
-            # NOTE: mock data returned when database has no order records
-            "sales": [28200, 31500, 26800, 35600, 32100, 42300, 32680],
-        }
-
-    return {"dates": dates, "sales": sales}
+        sales.append(float(await day_sales(db, day)))
+        orders.append(await day_orders(db, day))
+    return {"dates": dates, "sales": sales, "orders": orders, "currency": "CNY"}
 
 
 @router.get("/order-status-distribution")
@@ -162,33 +141,5 @@ async def get_order_status_distribution(
     db: AsyncSession = Depends(get_db),
 ):
     """Order count by status."""
-    query = (
-        select(Order.status, func.count())
-        .group_by(Order.status)
-        .order_by(func.count().desc())
-    )
-    result = await db.execute(query)
-    rows = result.all()
-
-    # If no data, return mock data
-    if not rows:
-        return {
-            "data": [
-                {"name": "待处理", "value": 23},
-                {"name": "已匹配", "value": 15},
-                {"name": "已确认", "value": 10},
-                {"name": "已采购", "value": 8},
-                {"name": "已发货", "value": 56},
-                {"name": "已送达", "value": 38},
-                {"name": "已完成", "value": 20},
-                {"name": "已取消", "value": 11},
-            ]
-        }
-
-    data = []
-    for status, count in rows:
-        data.append({
-            "name": STATUS_NAME_MAP.get(status, status),
-            "value": count,
-        })
-    return {"data": data}
+    rows = (await db.execute(select(Order.status, func.count()).group_by(Order.status).order_by(func.count().desc()))).all()
+    return {"data": [{"name": STATUS_NAME_MAP.get(status, status), "value": count} for status, count in rows]}

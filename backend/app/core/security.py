@@ -72,6 +72,16 @@ async def get_current_user(
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    if user is None or not user.is_active:
+    if user is None or not user.is_active or not token_current(payload, user):
         raise credentials_exception
     return user
+
+
+def token_claims(user: User) -> dict:
+    """JWT claims for a user; tv ties the token to the user's current password."""
+    return {"sub": str(user.id), "tv": user.token_version or 0}
+
+
+def token_current(payload: dict, user: User) -> bool:
+    # Tokens issued before token versions existed carry no tv and count as version 0.
+    return payload.get("tv", 0) == (user.token_version or 0)

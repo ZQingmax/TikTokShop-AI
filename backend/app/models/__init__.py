@@ -11,6 +11,14 @@ from app.models.customer_service import CSSession, CSMessage, Ticket  # noqa: F4
 from app.models.mapping import SKUMapping, MatchRecord  # noqa: F401
 from app.models.alert import Alert  # noqa: F401
 from app.models.faq import FAQ  # noqa: F401
+from app.models.sourcing import SourcingCandidate, SourcingSupplier, SourcingTask, SourcingEvaluation, SourcingReview, MiaoshouSyncTask  # noqa: F401
+from app.models.discovery import DiscoveryTask, DiscoveryResult  # noqa: F401
+from app.models.fastmoss import FastmossTask, FastmossCatalog  # noqa: F401
+from app.models.collect_box import CollectBoxItem  # noqa: F401
+from app.models.workbench import WorkbenchDraft, WorkbenchAsset, WorkbenchTask  # noqa: F401
+from app.models.listing import ListingTask  # noqa: F401
+from app.models.sync_state import MiaoshouSyncState  # noqa: F401
+from app.models.system_settings import ModelSetting, ModelUsageLog  # noqa: F401
 
 __all__ = [
     "Base",

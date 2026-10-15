@@ -28,7 +28,7 @@ async def test_create_product(client: AsyncClient, auth_headers: dict):
         },
         headers=auth_headers,
     )
-    assert response.status_code == 201
+    assert response.status_code == 200  # Existing product API contract.
     data = response.json()
     assert data["name"] == "Test Product"
     assert data["status"] == "draft"

@@ -1,7 +1,7 @@
 """Database connection and session management using SQLAlchemy 2.0 async."""
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase
+from app.models.base import Base  # Shared metadata for application and tests.
 
 from app.config import get_settings
 
@@ -10,6 +10,9 @@ settings = get_settings()
 engine = create_async_engine(
     settings.database_url,
     echo=settings.debug,
+    # Source records may contain supplier metadata or tracking values. SQL debug
+    # logs and DB exception strings must never print bound business parameters.
+    hide_parameters=True,
     pool_size=20,
     max_overflow=10,
     pool_pre_ping=True,
@@ -23,11 +26,6 @@ async_session_factory = async_sessionmaker(
     autocommit=False,
     autoflush=False,
 )
-
-
-class Base(DeclarativeBase):
-    """SQLAlchemy declarative base for all models."""
-    pass
 
 
 async def get_db() -> AsyncSession:

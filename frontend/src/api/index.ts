@@ -65,9 +65,6 @@ export function getPurchaseOrders(params?: Record<string, unknown>) {
   return request.get('/v1/fulfillment/purchase-orders', { params })
 }
 
-export function createPurchaseOrder(data: Record<string, unknown>) {
-  return request.post('/v1/fulfillment/purchase-orders', data)
-}
 
 export function getShipments(params?: Record<string, unknown>) {
   return request.get('/v1/fulfillment/shipments', { params })
@@ -111,9 +108,41 @@ export function getTransactions(params?: Record<string, unknown>) {
   return request.get('/v1/finance/transactions', { params })
 }
 
+export interface ExchangeRateItem {
+  currency: string
+  base_currency: 'CNY'
+  rate: string | null
+  source: string | null
+  updated_by: string | null
+  updated_by_name: string | null
+  updated_at: string | null
+  unconverted_records: number
+  recomputed_records?: number
+}
+
+export function getExchangeRates() {
+  return request.get<any, { items: ExchangeRateItem[] }>('/v1/finance/exchange-rates')
+}
+
+// rate: 1 CNY = rate × currency. recompute_all re-derives every record in that currency, not just unconverted ones.
+export function saveExchangeRate(currency: string, rate: string, recomputeAll = false) {
+  return request.put<any, ExchangeRateItem>(`/v1/finance/exchange-rates/${currency}`, { rate, recompute_all: recomputeAll })
+}
+
 // ========== Dashboard ==========
+interface DashboardStats {
+  today_orders: number
+  today_sales: string
+  pending_orders: number
+  total_products: number
+  order_trend: number
+  sales_trend: number
+  pending_trend: number
+  product_trend: number
+}
+
 export function getDashboardStats() {
-  return request.get('/v1/dashboard/stats')
+  return request.get<DashboardStats, DashboardStats>('/v1/dashboard/stats')
 }
 
 export function getDashboardRecentOrders() {
@@ -121,7 +150,7 @@ export function getDashboardRecentOrders() {
 }
 
 export function getDashboardSalesTrend() {
-  return request.get('/v1/dashboard/sales-trend')
+  return request.get<unknown, { dates: string[]; sales: number[] }>('/v1/dashboard/sales-trend')
 }
 
 export function getDashboardOrderDistribution() {

@@ -2,6 +2,7 @@
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
+        <img class="login-logo" src="/logo.png" alt="" />
         <h2 class="login-title">TikTok跨境电商运营系统</h2>
         <p class="login-subtitle">请使用您的账号登录</p>
       </div>
@@ -34,6 +35,11 @@
           />
         </el-form-item>
 
+        <el-form-item class="remember-row">
+          <el-checkbox v-model="remember">记住我（7 天内免登录）</el-checkbox>
+          <span class="remember-hint">不会在浏览器保存密码</span>
+        </el-form-item>
+
         <el-form-item>
           <el-button
             type="primary"
@@ -55,6 +61,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
+import { session } from '@/api/session'
 
 const router = useRouter()
 const route = useRoute()
@@ -63,15 +70,26 @@ const userStore = useUserStore()
 const loginFormRef = ref<FormInstance>()
 const loading = ref(false)
 
+const rememberedUsername = session.rememberedUsername()
 const loginForm = reactive({
-  username: '',
+  username: rememberedUsername,
   password: '',
 })
+// 上次勾选过“记住我”则默认保持勾选
+const remember = ref(!!rememberedUsername)
 
+// 与后端 LoginRequest 一致（2–200 字符）；用户名常为邮箱，首尾空白不计入长度
 const loginRules: FormRules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 2, max: 20, message: '用户名长度为2-20个字符', trigger: 'blur' },
+    { required: true, whitespace: true, message: '请输入用户名', trigger: 'blur' },
+    {
+      validator: (_rule, value: string, callback) => {
+        const length = (value || '').trim().length
+        if (length < 2 || length > 200) callback(new Error('用户名长度为2-200个字符'))
+        else callback()
+      },
+      trigger: 'blur',
+    },
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -85,18 +103,17 @@ async function handleLogin() {
     if (!valid) return
     loading.value = true
     try {
-      console.log('开始登录...')
-      await userStore.login(loginForm.username, loginForm.password)
-      console.log('登录成功，token已保存:', localStorage.getItem('token'))
+      await userStore.login(loginForm.username.trim(), loginForm.password, remember.value)
       ElMessage.success('登录成功')
       const redirect = (route.query.redirect as string) || '/dashboard'
-      console.log('准备跳转到:', redirect)
-      await router.push(redirect)
-      console.log('跳转完成')
+      // 只允许站内跳转，避免 redirect 参数被用于跳往外部站点
+      await router.push(redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard')
     } catch (err: unknown) {
-      console.error('登录错误:', err)
-      const message = err instanceof Error ? err.message : '登录失败，请检查用户名和密码'
-      ElMessage.error(message)
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 401) ElMessage.error('用户名或密码错误')
+      else if (status === 403) ElMessage.error('账号已停用，请联系管理员')
+      else if (!status) ElMessage.error('无法连接服务器，请检查网络或后端服务')
+      // 其他状态码（422/5xx）已由全局拦截器提示
     } finally {
       loading.value = false
     }
@@ -110,15 +127,22 @@ async function handleLogin() {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--app-login-bg);
 }
 
 .login-card {
   width: 420px;
   padding: 40px;
-  background: #fff;
+  background: var(--el-bg-color);
   border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  border-top: 4px solid var(--app-brand);
+  box-shadow: 0 20px 50px var(--el-color-primary-light-9);
+}
+
+.login-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 12px;
 }
 
 .login-header {
@@ -129,18 +153,27 @@ async function handleLogin() {
 .login-title {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: var(--el-text-color-primary);
   margin: 0 0 8px;
 }
 
 .login-subtitle {
   font-size: 14px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   margin: 0;
 }
 
 .login-form {
   width: 100%;
+}
+
+.remember-row :deep(.el-form-item__content) {
+  justify-content: space-between;
+}
+
+.remember-hint {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 
 .login-button {

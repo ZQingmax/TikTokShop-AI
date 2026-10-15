@@ -13,6 +13,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
     # App
@@ -50,6 +51,7 @@ class Settings(BaseSettings):
         default="",
         description="OpenAI API key for LLM operations",
     )
+    llm_mock_mode: bool = True
     llm_model: str = "gpt-4o-mini"
     llm_base_url: str = "https://api.openai.com/v1"
     llm_temperature: float = 0.7
